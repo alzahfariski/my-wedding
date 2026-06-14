@@ -24,3 +24,85 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes wave-move {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100px);
+  }
+}
+
+.animate-wave-1 {
+  animation: wave-move 3s linear infinite;
+}
+
+.animate-wave-2 {
+  animation: wave-move 2s linear infinite;
+}
+
+@keyframes heart-beat-slow {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes heart-beat-fast {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0) scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-120px) scale(1.2) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.animate-heart-slow {
+  animation: heart-beat-slow 1.6s ease-in-out infinite;
+}
+
+.animate-heart-fast {
+  animation: heart-beat-fast 0.8s ease-in-out infinite;
+}
+
+.animate-float-up {
+  animation: float-up 3s ease-out forwards;
+}
+
+@keyframes scale-pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-scale-pop {
+  animation: scale-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+
