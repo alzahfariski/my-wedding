@@ -15,23 +15,14 @@ interface Particle {
 }
 
 export default function LoadingScreen({ onFinished }: LoadingScreenProps) {
-  const [theme, setTheme] = useState<"men" | "women" | null>(null);
   const [targetProgress, setTargetProgress] = useState(0);
   const [visualProgress, setVisualProgress] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
 
-  // Initialize random theme
-  useEffect(() => {
-    const randomTheme = Math.random() < 0.5 ? "men" : "women";
-    setTheme(randomTheme);
-  }, []);
-
   // Linear target progress update over 2000ms
   useEffect(() => {
-    if (!theme) return;
-
     const duration = 2000;
     const intervalTime = 30;
     const totalSteps = duration / intervalTime;
@@ -49,7 +40,7 @@ export default function LoadingScreen({ onFinished }: LoadingScreenProps) {
     }, intervalTime);
 
     return () => clearInterval(timer);
-  }, [theme]);
+  }, []);
 
   // Lerp progress to make it butter smooth like AAA games
   useEffect(() => {
@@ -77,15 +68,13 @@ export default function LoadingScreen({ onFinished }: LoadingScreenProps) {
   // Spawn floating heart particles during loading
   useEffect(() => {
     if (visualProgress > 0 && visualProgress < 100) {
-      // Control spawn rate randomly
       if (Math.random() < 0.25) {
         const newParticle: Particle = {
           id: Math.random(),
-          left: Math.random() * 80 + 10, // Placement from 10% to 90%
-          scale: Math.random() * 0.6 + 0.4, // Random sizes
+          left: Math.random() * 80 + 10,
+          scale: Math.random() * 0.6 + 0.4,
           delay: Math.random() * 0.2,
         };
-        // Keep active list trimmed
         setParticles((prev) => [...prev.slice(-15), newParticle]);
       }
     }
@@ -109,16 +98,6 @@ export default function LoadingScreen({ onFinished }: LoadingScreenProps) {
     }
   }, [isCompleted, onFinished]);
 
-  if (!theme) return null;
-
-  const imagePra = theme === "men"
-    ? "/images/loading/loading-men-pra.png"
-    : "/images/loading/loading-women-pra.png";
-
-  const imageYey = theme === "men"
-    ? "/images/loading/loading-men-yey.png"
-    : "/images/loading/loading-women.png";
-
   // Calculate progress for each of the 5 hearts (each represents 20% of total)
   const getHeartProgress = (index: number) => {
     const start = index * 20;
@@ -133,11 +112,11 @@ export default function LoadingScreen({ onFinished }: LoadingScreenProps) {
       className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-white backdrop-blur-md transition-opacity duration-700 ease-in-out dark:bg-white ${isFadingOut ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
     >
-      <div className="flex flex-col items-center gap-10 max-w-sm px-6 text-center">
+      <div className="flex flex-col items-center gap-6 max-w-sm px-6 text-center">
 
-        {/* Main Image display with cute spring entry & Pop transitions */}
+        {/* TOP IMAGE: MEN */}
         <div
-          className={`relative w-48 h-48 overflow-hidden bg-white transition-all duration-700 ${isCompleted ? "animate-scale-pop" : "scale-100"
+          className={`relative w-36 h-36 overflow-hidden bg-white transition-all duration-700 ${isCompleted ? "animate-scale-pop" : "scale-100"
             }`}
         >
           {/* Pra state */}
@@ -146,11 +125,11 @@ export default function LoadingScreen({ onFinished }: LoadingScreenProps) {
               }`}
           >
             <Image
-              src={imagePra}
-              alt="Loading..."
+              src="/images/loading/loading-men-pra.png"
+              alt="Loading Men..."
               fill
               priority
-              sizes="192px"
+              sizes="144px"
               className="object-cover"
             />
           </div>
@@ -161,17 +140,17 @@ export default function LoadingScreen({ onFinished }: LoadingScreenProps) {
               }`}
           >
             <Image
-              src={imageYey}
-              alt="Yey!"
+              src="/images/loading/loading-men-yey.png"
+              alt="Welcome!"
               fill
-              sizes="192px"
+              sizes="144px"
               className="object-cover"
             />
           </div>
         </div>
 
-        {/* Liquid wave filling hearts & floating particles */}
-        <div className="flex flex-col items-center relative w-full">
+        {/* MIDDLE SECTION: HP BAR & PARTICLES */}
+        <div className="flex flex-col items-center relative w-full py-2">
           {/* Glowing Animated Hearts Row */}
           <div className="flex items-center gap-3 justify-center">
             {[0, 1, 2, 3, 4].map((index) => {
@@ -186,7 +165,7 @@ export default function LoadingScreen({ onFinished }: LoadingScreenProps) {
                       : "drop-shadow-[0_0_4px_rgba(244,63,94,0.1)]"
                     }`}
                 >
-                  <svg viewBox="0 0 100 100" className="w-10 h-10 relative select-none">
+                  <svg viewBox="0 0 100 100" className="w-8 h-8 relative select-none">
                     <defs>
                       <clipPath id={`heart-clip-${index}`}>
                         <path d="M 50 90 C 50 90 20 60 20 35 C 20 20 35 10 50 25 C 65 10 80 20 80 35 C 80 60 50 90 50 90 Z" />
@@ -235,6 +214,42 @@ export default function LoadingScreen({ onFinished }: LoadingScreenProps) {
             })}
           </div>
         </div>
+
+        {/* BOTTOM IMAGE: WOMEN */}
+        <div
+          className={`relative w-36 h-36 overflow-hidden bg-white transition-all duration-700 ${isCompleted ? "animate-scale-pop" : "scale-100"
+            }`}
+        >
+          {/* Pra state */}
+          <div
+            className={`absolute inset-0 transition-all duration-500 ease-out ${isCompleted ? "opacity-0 scale-90 rotate-2" : "opacity-100 scale-100 rotate-0"
+              }`}
+          >
+            <Image
+              src="/images/loading/loading-women-pra.png"
+              alt="Loading Women..."
+              fill
+              priority
+              sizes="144px"
+              className="object-cover"
+            />
+          </div>
+
+          {/* Yey state */}
+          <div
+            className={`absolute inset-0 transition-all duration-700 ease-out ${isCompleted ? "opacity-100 scale-100 rotate-0" : "opacity-0 scale-110 -rotate-2"
+              }`}
+          >
+            <Image
+              src="/images/loading/loading-women.png"
+              alt="Welcome!"
+              fill
+              sizes="144px"
+              className="object-cover"
+            />
+          </div>
+        </div>
+
       </div>
     </div>
   );

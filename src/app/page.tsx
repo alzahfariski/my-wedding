@@ -3,14 +3,23 @@
 import { useState } from "react";
 import Image from "next/image";
 import LoadingScreen from "@/components/LoadingScreen";
+import CinematicGate from "@/components/CinematicGate";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
+  const [isGateMounted, setIsGateMounted] = useState(true);
 
   return (
     <>
+      {/* Loading Screen */}
       {isLoading && <LoadingScreen onFinished={() => setIsLoading(false)} />}
-      
+
+      {/* Cinematic Gate Screen */}
+      {!isLoading && isGateMounted && (
+        <CinematicGate onOpen={() => setIsGateMounted(false)} />
+      )}
+
+      {/* Main Invitation Page Content */}
       <div
         className={`flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black transition-all duration-1000 ease-out ${
           isLoading ? "opacity-0 scale-95" : "opacity-100 scale-100"
