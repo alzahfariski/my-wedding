@@ -97,13 +97,7 @@ export default function CinematicGate({ onOpen }: CinematicGateProps) {
             onClick={handleOpen}
             className="w-full h-11 sm:h-12 bg-rose-600 hover:bg-rose-700 text-white rounded-full font-medium tracking-wide shadow-lg shadow-rose-200 hover:shadow-xl transition-all duration-300 transform active:scale-95 cursor-pointer flex items-center justify-center gap-2 text-sm sm:text-base"
           >
-            <svg
-              className="w-4 h-4 fill-current"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" />
-            </svg>
+
             Buka Undangan
           </button>
         </div>
