@@ -50,9 +50,6 @@ export default function LoadingScreen({ onFinished }: LoadingScreenProps) {
       setVisualProgress((prev) => {
         const diff = targetProgress - prev;
         if (diff < 0.1) {
-          if (targetProgress === 100 && !isCompleted) {
-            setIsCompleted(true);
-          }
           return targetProgress;
         }
         // Smoothly interpolate towards the target progress
@@ -63,7 +60,14 @@ export default function LoadingScreen({ onFinished }: LoadingScreenProps) {
 
     animationFrameId = requestAnimationFrame(updateProgress);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [targetProgress, isCompleted]);
+  }, [targetProgress]);
+
+  // Handle completion state when progress reaches 100%
+  useEffect(() => {
+    if (visualProgress >= 99.9 && targetProgress === 100 && !isCompleted) {
+      setIsCompleted(true);
+    }
+  }, [visualProgress, targetProgress, isCompleted]);
 
   // Spawn floating heart particles during loading
   useEffect(() => {
@@ -125,7 +129,7 @@ export default function LoadingScreen({ onFinished }: LoadingScreenProps) {
               }`}
           >
             <Image
-              src="/images/loading/loading-men-pra.png"
+              src="/images/loading/pra-men.png"
               alt="Loading Men..."
               fill
               priority
@@ -140,7 +144,7 @@ export default function LoadingScreen({ onFinished }: LoadingScreenProps) {
               }`}
           >
             <Image
-              src="/images/loading/loading-men-yey.png"
+              src="/images/loading/done-men.png"
               alt="Welcome!"
               fill
               sizes="144px"
@@ -161,8 +165,8 @@ export default function LoadingScreen({ onFinished }: LoadingScreenProps) {
                 <div
                   key={index}
                   className={`relative transition-all duration-300 ${isHeartFull
-                      ? "animate-scale-pop drop-shadow-[0_0_10px_rgba(244,63,94,0.6)]"
-                      : "drop-shadow-[0_0_4px_rgba(244,63,94,0.1)]"
+                    ? "animate-scale-pop drop-shadow-[0_0_10px_rgba(244,63,94,0.6)]"
+                    : "drop-shadow-[0_0_4px_rgba(244,63,94,0.1)]"
                     }`}
                 >
                   <svg viewBox="0 0 100 100" className="w-8 h-8 relative select-none">
@@ -226,7 +230,7 @@ export default function LoadingScreen({ onFinished }: LoadingScreenProps) {
               }`}
           >
             <Image
-              src="/images/loading/loading-women-pra.png"
+              src="/images/loading/pra-women.png"
               alt="Loading Women..."
               fill
               priority
@@ -241,7 +245,7 @@ export default function LoadingScreen({ onFinished }: LoadingScreenProps) {
               }`}
           >
             <Image
-              src="/images/loading/loading-women.png"
+              src="/images/loading/done-women.png"
               alt="Welcome!"
               fill
               sizes="144px"

@@ -49,7 +49,7 @@ export default function ScrollProgress() {
 
         {/* Active Fill line */}
         <div
-          className="h-full bg-rose-400 rounded-full transition-all duration-75"
+          className="h-full bg-rose-400 rounded-full"
           style={{ width: `${visualScroll}%` }}
         ></div>
 
