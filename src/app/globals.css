@@ -10,6 +10,55 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-kalam: var(--font-kalam);
+  --font-alex: var(--font-alex-brush);
+}
+
+/* Custom Text Style Design System */
+
+/* Alex Brush - Elegant Script Font Styles */
+@utility text-script-display {
+  font-family: var(--font-alex);
+  font-size: clamp(3.5rem, 8vw, 6rem);
+  line-height: 1.1;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+@utility text-script-title {
+  font-family: var(--font-alex);
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  line-height: 1.2;
+  font-weight: 400;
+}
+
+@utility text-script-accent {
+  font-family: var(--font-alex);
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  line-height: 1.3;
+  font-weight: 400;
+}
+
+/* Kalam - Casual/Warm Handwritten Font Styles */
+@utility text-handwritten-title {
+  font-family: var(--font-kalam);
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+@utility text-handwritten-body {
+  font-family: var(--font-kalam);
+  font-size: 1.125rem;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+@utility text-handwritten-caption {
+  font-family: var(--font-kalam);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  font-weight: 300;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,5 +71,6 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans);
 }
+
