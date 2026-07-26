@@ -2,14 +2,19 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { Camera, Upload, Check, RefreshCw } from "lucide-react";
+import { Camera, Upload, Check, RefreshCw, Pencil, Trash2 } from "lucide-react";
+import { collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { uploadToDrive, deleteFromDrive } from "@/app/actions/uploadDrive";
 
 interface PinnedPhoto {
     id: string;
     guestName: string;
     imageSrc: string;
+    fileId?: string;
     caption: string;
     date: string;
+    creatorId?: string;
 }
 
 const DEFAULT_PHOTOS: PinnedPhoto[] = [
@@ -76,27 +81,63 @@ export default function PhotoBoothSection() {
     const [guestName, setGuestName] = useState("");
     const [caption, setCaption] = useState("");
     const [tempImage, setTempImage] = useState<string | null>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [userId, setUserId] = useState("");
+    const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
+    const [editingPhotoOldFileId, setEditingPhotoOldFileId] = useState<string | undefined>(undefined);
+    const [isViewAllOpen, setIsViewAllOpen] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Initialize/Get User ID from localStorage
     useEffect(() => {
-        const stored = localStorage.getItem("alzah_booth");
-        if (stored) {
-            try {
-                setPhotos(JSON.parse(stored));
-            } catch (e) {
+        let storedId = localStorage.getItem("wedding_user_id");
+        if (!storedId) {
+            storedId = "user_" + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+            localStorage.setItem("wedding_user_id", storedId);
+        }
+        setUserId(storedId);
+    }, []);
+
+    // Subscribe to photos from Firestore
+    useEffect(() => {
+        const q = query(collection(db, "photos"), orderBy("createdAt", "desc"));
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                if (snapshot.empty) {
+                    setPhotos(DEFAULT_PHOTOS);
+                } else {
+                    const list: PinnedPhoto[] = [];
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        list.push({
+                            id: doc.id,
+                            guestName: data.guestName,
+                            imageSrc: data.imageSrc,
+                            fileId: data.fileId,
+                            caption: data.caption,
+                            date: data.date,
+                            creatorId: data.creatorId,
+                        });
+                    });
+                    setPhotos(list);
+                }
+            },
+            (error) => {
+                console.error("Error fetching photos from Firestore:", error);
                 setPhotos(DEFAULT_PHOTOS);
             }
-        } else {
-            setPhotos(DEFAULT_PHOTOS);
-        }
+        );
+        return () => unsubscribe();
     }, []);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            setSelectedFile(file);
             const reader = new FileReader();
             reader.onload = (event) => {
                 setTempImage(event.target?.result as string);
@@ -109,40 +150,111 @@ export default function PhotoBoothSection() {
         fileInputRef.current?.click();
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!guestName.trim() || !tempImage) return;
 
         setSubmitting(true);
-        setTimeout(() => {
-            const newPhoto: PinnedPhoto = {
-                id: `photo-${Date.now()}`,
-                guestName: guestName.trim(),
-                imageSrc: tempImage,
-                caption: caption.trim() || "Momen bahagia!",
-                date: new Date().toLocaleDateString("id-ID", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                }).replace(/\//g, "."),
-            };
+        try {
+            const formattedDate = new Date().toLocaleDateString("id-ID", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+            }).replace(/\//g, ".");
 
-            const updatedPhotos = [newPhoto, ...photos];
-            setPhotos(updatedPhotos);
-            localStorage.setItem("wedding_booth_photos_v2", JSON.stringify(updatedPhotos));
+            if (editingPhotoId) {
+                // Update Photo
+                let newImageUrl: string = tempImage || "";
+                let newFileId: string | undefined = editingPhotoOldFileId;
 
-            setSubmitting(false);
+                // Check if user uploaded a replacement image file
+                if (selectedFile) {
+                    const formData = new FormData();
+                    formData.append("file", selectedFile);
+                    const driveRes = await uploadToDrive(formData);
+
+                    if (!driveRes.success || !driveRes.imageUrl) {
+                        throw new Error(driveRes.error || "Gagal mengunggah foto baru ke Google Drive.");
+                    }
+
+                    newImageUrl = driveRes.imageUrl;
+                    newFileId = driveRes.fileId;
+
+                    // Delete old Google Drive photo
+                    if (editingPhotoOldFileId) {
+                        await deleteFromDrive(editingPhotoOldFileId);
+                    }
+                }
+
+                const photoDocRef = doc(db, "photos", editingPhotoId);
+                await updateDoc(photoDocRef, {
+                    guestName: guestName.trim(),
+                    caption: caption.trim() || "Momen bahagia!",
+                    imageSrc: newImageUrl,
+                    fileId: newFileId || "",
+                    date: formattedDate,
+                });
+
+                setEditingPhotoId(null);
+                setEditingPhotoOldFileId(undefined);
+            } else {
+                // Create Photo: Must have a selected file
+                if (!selectedFile) {
+                    alert("Silakan pilih foto terlebih dahulu.");
+                    setSubmitting(false);
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append("file", selectedFile);
+                const driveRes = await uploadToDrive(formData);
+
+                if (!driveRes.success) {
+                    throw new Error(driveRes.error || "Gagal mengunggah foto ke Google Drive.");
+                }
+
+                await addDoc(collection(db, "photos"), {
+                    guestName: guestName.trim(),
+                    caption: caption.trim() || "Momen bahagia!",
+                    imageSrc: driveRes.imageUrl,
+                    fileId: driveRes.fileId,
+                    date: formattedDate,
+                    creatorId: userId,
+                    createdAt: serverTimestamp(),
+                });
+            }
+
             setSubmitted(true);
             setGuestName("");
             setCaption("");
             setTempImage(null);
+            setSelectedFile(null);
 
             setTimeout(() => setSubmitted(false), 3000);
-        }, 1500);
+        } catch (error) {
+            console.error("Error submitting photo:", error);
+            alert("Terjadi kesalahan saat memproses foto. Silakan coba lagi.");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleDeletePhoto = async (id: string, fileId?: string) => {
+        if (!confirm("Apakah Anda yakin ingin menghapus foto ini?")) return;
+        try {
+            if (fileId) {
+                await deleteFromDrive(fileId);
+            }
+            await deleteDoc(doc(db, "photos", id));
+        } catch (error) {
+            console.error("Error deleting photo:", error);
+            alert("Gagal menghapus foto dari database.");
+        }
     };
 
     const handleResetImage = () => {
         setTempImage(null);
+        setSelectedFile(null);
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
         }
@@ -160,20 +272,20 @@ export default function PhotoBoothSection() {
                     left: "2190px",
                     top: "1120px",
                     width: "480px",
-                    height: "180px",
+                    minHeight: "180px",
                 }}
-                className=" p-4 font-kalam text-[#743951] select-none flex flex-col justify-between"
+                className="p-4 font-kalam text-[#743951] select-none flex flex-col justify-between"
             >
                 <div className="text-[15px] font-bold italic pb-1 w-full text-start leading-none">
-                    Abadikan Momen
+                    {editingPhotoId ? "Edit Momen Anda" : "Abadikan Momen"}
                 </div>
 
                 {submitted ? (
                     <div className="flex flex-col items-center justify-center py-2 gap-1 text-center flex-1">
                         <Check className="w-7 h-7 text-emerald-500 animate-image-pop" />
-                        <span className="text-[13px] font-bold">Terpasang!</span>
+                        <span className="text-[13px] font-bold">{editingPhotoId ? "Tersimpan!" : "Terpasang!"}</span>
                         <p className="text-[10px] text-stone-600 leading-tight">
-                            Foto Anda telah berhasil ditempel di dinding foto!
+                            {editingPhotoId ? "Perubahan foto berhasil disimpan!" : "Foto Anda telah berhasil ditempel di dinding foto!"}
                         </p>
                     </div>
                 ) : (
@@ -236,13 +348,33 @@ export default function PhotoBoothSection() {
                                 )}
                             </div>
 
-                            <button
-                                type="submit"
-                                disabled={submitting || !tempImage}
-                                className="w-full py-1.5 bg-[#743951] text-white font-semibold rounded shadow-sm hover:bg-[#5c2d40] active:scale-[0.98] text-[11px] cursor-pointer disabled:opacity-50 select-none mt-1.5"
-                            >
-                                {submitting ? "Menempelkan..." : "Tempel Foto"}
-                            </button>
+                            <div className="flex flex-col gap-1 w-full mt-1.5">
+                                <button
+                                    type="submit"
+                                    disabled={submitting || !tempImage}
+                                    className="w-full py-1.5 bg-[#743951] text-white font-semibold rounded shadow-sm hover:bg-[#5c2d40] active:scale-[0.98] text-[11px] cursor-pointer disabled:opacity-50 select-none transition-colors"
+                                >
+                                    {submitting 
+                                        ? (editingPhotoId ? "Menyimpan..." : "Menempelkan...") 
+                                        : (editingPhotoId ? "Simpan Perubahan" : "Tempel Foto")}
+                                </button>
+                                {editingPhotoId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setEditingPhotoId(null);
+                                            setEditingPhotoOldFileId(undefined);
+                                            setGuestName("");
+                                            setCaption("");
+                                            setTempImage(null);
+                                            setSelectedFile(null);
+                                        }}
+                                        className="w-full py-1 bg-stone-200 hover:bg-stone-300 text-stone-700 font-semibold rounded text-[10px] cursor-pointer transition-colors"
+                                    >
+                                        Batal Edit
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </form>
                 )}
@@ -291,9 +423,42 @@ export default function PhotoBoothSection() {
                                 <span className="text-[7.5px] text-stone-600 truncate italic">
                                     "{photo.caption}"
                                 </span>
-                                <span className="text-[6.5px] text-stone-400 mt-0.5 text-right font-sans font-semibold">
-                                    {photo.date}
-                                </span>
+                                <div className="flex justify-between items-center mt-0.5 pt-0.5 border-t border-stone-200/60">
+                                    <div className="flex gap-1 z-20">
+                                        {photo.creatorId === userId && (
+                                            <>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setEditingPhotoId(photo.id);
+                                                        setEditingPhotoOldFileId(photo.fileId);
+                                                        setGuestName(photo.guestName);
+                                                        setCaption(photo.caption);
+                                                        setTempImage(photo.imageSrc);
+                                                        setSelectedFile(null);
+                                                    }}
+                                                    className="p-0.5 hover:bg-[#743951]/15 rounded text-[#743951] cursor-pointer transition-colors"
+                                                    title="Edit foto"
+                                                >
+                                                    <Pencil className="w-2.5 h-2.5" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeletePhoto(photo.id, photo.fileId);
+                                                    }}
+                                                    className="p-0.5 hover:bg-red-105 rounded text-red-600 cursor-pointer transition-colors"
+                                                    title="Hapus foto"
+                                                >
+                                                    <Trash2 className="w-2.5 h-2.5" />
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                    <span className="text-[6.5px] text-stone-400 font-sans font-semibold ml-auto">
+                                        {photo.date}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     );
@@ -312,11 +477,108 @@ export default function PhotoBoothSection() {
             >
                 <button
                     type="button"
+                    onClick={() => setIsViewAllOpen(true)}
                     className="px-5 py-1 bg-white/90 border border-[#743951]/20 hover:bg-white text-[#743951] font-kalam font-bold text-[11px] rounded-full shadow-sm cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-image-pop"
                 >
                     View All Photos ({photos.length})
                 </button>
             </div>
+
+            {/* View All Photos Modal */}
+            {isViewAllOpen && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-[#FAF9F6] border-2 border-[#743951]/30 rounded-2xl w-full max-w-5xl max-h-[85vh] flex flex-col p-6 shadow-2xl relative font-kalam text-[#743951]">
+                        {/* Close button */}
+                        <button
+                            onClick={() => setIsViewAllOpen(false)}
+                            className="absolute top-4 right-4 text-stone-400 hover:text-[#743951] transition-colors p-1 cursor-pointer rounded-full hover:bg-stone-100"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        
+                        <h3 className="text-2xl font-bold text-center border-b border-[#743951]/25 pb-3 mb-6 italic">
+                            All Polaroid Photos ({photos.length})
+                        </h3>
+                        
+                        <div className="overflow-y-auto flex-1 pr-2 scrollbar-thin scrollbar-thumb-[#743951]/20">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 pb-4">
+                                {photos.map((photo, index) => {
+                                    const rotClass = rotations[index % rotations.length];
+                                    return (
+                                        <div
+                                            key={photo.id}
+                                            className={`w-full ${rotClass} bg-[#fafaf9] rounded shadow-md border border-stone-200 p-2 pb-3.5 flex flex-col items-center transition-all duration-300 hover:scale-105 hover:rotate-0 select-none relative`}
+                                        >
+                                            {/* Tape decoration */}
+                                            <div className="absolute -top-1.5 w-6 h-2 bg-amber-100/60 rotate-[-8deg] rounded-sm shadow-sm" />
+
+                                            {/* Polaroid Image */}
+                                            <div className="relative w-full aspect-square bg-stone-100 border border-stone-200/50 rounded-sm overflow-hidden">
+                                                <Image
+                                                    src={photo.imageSrc}
+                                                    alt="Polaroid View"
+                                                    fill
+                                                    className="object-cover"
+                                                    unoptimized
+                                                />
+                                            </div>
+
+                                            {/* Polaroid details */}
+                                            <div className="w-full flex flex-col mt-2 font-kalam text-center leading-tight gap-y-0.5">
+                                                <span className="text-[10px] font-bold text-[#743951] truncate">
+                                                    {photo.guestName}
+                                                </span>
+                                                <span className="text-[8.5px] text-stone-600 truncate italic">
+                                                    "{photo.caption}"
+                                                </span>
+                                                <div className="flex justify-between items-center mt-1 pt-1 border-t border-stone-200/60">
+                                                    <div className="flex gap-1.5 z-20">
+                                                        {photo.creatorId === userId && (
+                                                            <>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setEditingPhotoId(photo.id);
+                                                                        setEditingPhotoOldFileId(photo.fileId);
+                                                                        setGuestName(photo.guestName);
+                                                                        setCaption(photo.caption);
+                                                                        setTempImage(photo.imageSrc);
+                                                                        setSelectedFile(null);
+                                                                        setIsViewAllOpen(false); // Close to focus on form
+                                                                    }}
+                                                                    className="p-1 hover:bg-[#743951]/15 rounded text-[#743951] cursor-pointer transition-colors"
+                                                                    title="Edit foto"
+                                                                >
+                                                                    <Pencil className="w-3.5 h-3.5" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDeletePhoto(photo.id, photo.fileId);
+                                                                    }}
+                                                                    className="p-1 hover:bg-red-100 rounded text-red-600 cursor-pointer transition-colors"
+                                                                    title="Hapus foto"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    <span className="text-[7.5px] text-stone-400 font-sans font-semibold ml-auto">
+                                                        {photo.date}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Hidden Input file helper */}
             <input

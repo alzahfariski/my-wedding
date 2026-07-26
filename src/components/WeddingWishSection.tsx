@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Check } from "lucide-react";
+import { Check, Pencil, Trash2 } from "lucide-react";
+import { collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 interface Wish {
     id: string;
@@ -9,6 +11,7 @@ interface Wish {
     text: string;
     date: string;
     color: string;
+    creatorId?: string;
 }
 
 const DEFAULT_WISHES: Wish[] = [
@@ -85,49 +88,108 @@ export default function WeddingWishSection() {
     const [selectedColor, setSelectedColor] = useState("#fef08a");
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [userId, setUserId] = useState<string>("");
+    const [editingWishId, setEditingWishId] = useState<string | null>(null);
+    const [isViewAllOpen, setIsViewAllOpen] = useState(false);
 
+    // Initialize/Get User ID from localStorage
     useEffect(() => {
-        const stored = localStorage.getItem("alzah_wish");
-        if (stored) {
-            try {
-                setWishes(JSON.parse(stored));
-            } catch (e) {
-                setWishes(DEFAULT_WISHES);
-            }
-        } else {
-            setWishes(DEFAULT_WISHES);
+        let storedId = localStorage.getItem("wedding_user_id");
+        if (!storedId) {
+            storedId = "user_" + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+            localStorage.setItem("wedding_user_id", storedId);
         }
+        setUserId(storedId);
     }, []);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    // Subscribe to wishes from Firestore
+    useEffect(() => {
+        const q = query(collection(db, "wishes"), orderBy("createdAt", "desc"));
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                if (snapshot.empty) {
+                    setWishes(DEFAULT_WISHES);
+                } else {
+                    const list: Wish[] = [];
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        list.push({
+                            id: doc.id,
+                            name: data.name,
+                            text: data.text,
+                            color: data.color,
+                            date: data.date,
+                            creatorId: data.creatorId,
+                        });
+                    });
+                    setWishes(list);
+                }
+            },
+            (error) => {
+                console.error("Error fetching wishes from Firestore:", error);
+                setWishes(DEFAULT_WISHES);
+            }
+        );
+        return () => unsubscribe();
+    }, []);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name.trim() || !wishText.trim()) return;
 
         setSubmitting(true);
-        setTimeout(() => {
-            const newWish: Wish = {
-                id: `wish-${Date.now()}`,
-                name: name.trim(),
-                text: wishText.trim(),
-                date: new Date().toLocaleDateString("id-ID", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                }).replace(/\//g, "."),
-                color: selectedColor,
-            };
+        try {
+            const formattedDate = new Date().toLocaleDateString("id-ID", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+            }).replace(/\//g, ".");
 
-            const updatedWishes = [newWish, ...wishes];
-            setWishes(updatedWishes);
-            localStorage.setItem("wedding_wishes_v2", JSON.stringify(updatedWishes));
+            if (editingWishId) {
+                // Update existing wish
+                const wishDocRef = doc(db, "wishes", editingWishId);
+                await updateDoc(wishDocRef, {
+                    name: name.trim(),
+                    text: wishText.trim(),
+                    color: selectedColor,
+                    date: formattedDate,
+                });
+                setEditingWishId(null);
+            } else {
+                // Create new wish
+                await addDoc(collection(db, "wishes"), {
+                    name: name.trim(),
+                    text: wishText.trim(),
+                    color: selectedColor,
+                    date: formattedDate,
+                    creatorId: userId,
+                    createdAt: serverTimestamp(),
+                });
+            }
 
-            setSubmitting(false);
             setSubmitted(true);
             setName("");
             setWishText("");
+            setSelectedColor("#fef08a");
 
             setTimeout(() => setSubmitted(false), 3000);
-        }, 1200);
+        } catch (error) {
+            console.error("Error submitting wish:", error);
+            alert("Gagal mengirim ucapan. Silakan coba lagi.");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleDeleteWish = async (id: string) => {
+        if (!confirm("Apakah Anda yakin ingin menghapus ucapan ini?")) return;
+        try {
+            await deleteDoc(doc(db, "wishes", id));
+        } catch (error) {
+            console.error("Error deleting wish:", error);
+            alert("Gagal menghapus ucapan.");
+        }
     };
 
     const activeWishes = wishes.slice(0, 8);
@@ -142,20 +204,20 @@ export default function WeddingWishSection() {
                     left: "2190px",
                     top: "550px",
                     width: "480px",
-                    height: "175px",
+                    minHeight: "175px",
                 }}
-                className="  p-4 font-kalam text-[#743951] select-none flex flex-col justify-between"
+                className="p-4 font-kalam text-[#743951] select-none flex flex-col justify-between"
             >
                 <div className="text-[15px] font-bold italic pb-4 w-full text-start leading-none">
-                    Give Your Wish
+                    {editingWishId ? "Edit Your Wish" : "Give Your Wish"}
                 </div>
 
                 {submitted ? (
                     <div className="flex flex-col items-center justify-center py-2 gap-1 text-center flex-1">
                         <Check className="w-7 h-7 text-emerald-500 animate-image-pop" />
-                        <span className="text-[13px] font-bold">Terkirim!</span>
+                        <span className="text-[13px] font-bold">{editingWishId ? "Tersimpan!" : "Terkirim!"}</span>
                         <p className="text-[10px] text-stone-600 leading-tight">
-                            Ucapan doa restu Anda berhasil terpasang!
+                            {editingWishId ? "Perubahan berhasil disimpan!" : "Ucapan doa restu Anda berhasil terpasang!"}
                         </p>
                     </div>
                 ) : (
@@ -206,13 +268,31 @@ export default function WeddingWishSection() {
                                 </div>
                             </div>
 
-                            <button
-                                type="submit"
-                                disabled={submitting}
-                                className="w-full py-1.5 bg-[#743951] text-white font-semibold rounded shadow-sm hover:bg-[#5c2d40] active:scale-[0.98] text-[11px] cursor-pointer disabled:opacity-50 select-none mt-auto"
-                            >
-                                {submitting ? "Memasang..." : "Pasang Ucapan"}
-                            </button>
+                            <div className="flex flex-col gap-1 w-full mt-auto">
+                                <button
+                                    type="submit"
+                                    disabled={submitting}
+                                    className="w-full py-1.5 bg-[#743951] text-white font-semibold rounded shadow-sm hover:bg-[#5c2d40] active:scale-[0.98] text-[11px] cursor-pointer disabled:opacity-50 select-none mt-auto transition-colors"
+                                >
+                                    {submitting 
+                                        ? (editingWishId ? "Menyimpan..." : "Memasang...") 
+                                        : (editingWishId ? "Simpan Perubahan" : "Pasang Ucapan")}
+                                </button>
+                                {editingWishId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setEditingWishId(null);
+                                            setName("");
+                                            setWishText("");
+                                            setSelectedColor("#fef08a");
+                                        }}
+                                        className="w-full py-1 bg-stone-200 hover:bg-stone-300 text-stone-700 font-semibold rounded text-[10px] cursor-pointer transition-colors"
+                                    >
+                                        Batal Edit
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </form>
                 )}
@@ -256,9 +336,40 @@ export default function WeddingWishSection() {
                                         "{wish.text}"
                                     </p>
                                 </div>
-                                <span className="text-[7px] font-semibold text-stone-500/80 text-right mt-0.5 font-sans">
-                                    {wish.date}
-                                </span>
+                                <div className="flex justify-between items-center mt-0.5 pt-0.5 border-t border-[#743951]/5">
+                                    <div className="flex gap-1 z-20">
+                                        {wish.creatorId === userId && (
+                                            <>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setEditingWishId(wish.id);
+                                                        setName(wish.name);
+                                                        setWishText(wish.text);
+                                                        setSelectedColor(wish.color);
+                                                    }}
+                                                    className="p-0.5 hover:bg-[#743951]/15 rounded text-[#743951] cursor-pointer transition-colors"
+                                                    title="Edit ucapan"
+                                                >
+                                                    <Pencil className="w-2.5 h-2.5" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteWish(wish.id);
+                                                    }}
+                                                    className="p-0.5 hover:bg-red-105 rounded text-red-600 cursor-pointer transition-colors"
+                                                    title="Hapus ucapan"
+                                                >
+                                                    <Trash2 className="w-2.5 h-2.5" />
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                    <span className="text-[7px] font-semibold text-stone-500/80 text-right font-sans">
+                                        {wish.date}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     );
@@ -277,11 +388,104 @@ export default function WeddingWishSection() {
             >
                 <button
                     type="button"
+                    onClick={() => setIsViewAllOpen(true)}
                     className="px-5 py-1 bg-white/90 border border-[#743951]/20 hover:bg-white text-[#743951] font-kalam font-bold text-[11px] rounded-full shadow-sm cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-image-pop"
                 >
                     View All Wishes ({wishes.length})
                 </button>
             </div>
+
+            {/* View All Wishes Modal */}
+            {isViewAllOpen && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-[#FAF9F6] border-2 border-[#743951]/30 rounded-2xl w-full max-w-4xl max-h-[85vh] flex flex-col p-6 shadow-2xl relative font-kalam text-[#743951]">
+                        {/* Close button */}
+                        <button
+                            onClick={() => setIsViewAllOpen(false)}
+                            className="absolute top-4 right-4 text-stone-400 hover:text-[#743951] transition-colors p-1 cursor-pointer rounded-full hover:bg-stone-100"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        
+                        <h3 className="text-2xl font-bold text-center border-b border-[#743951]/25 pb-3 mb-6 italic">
+                            All Wedding Wishes ({wishes.length})
+                        </h3>
+                        
+                        <div className="overflow-y-auto flex-1 pr-2 scrollbar-thin scrollbar-thumb-[#743951]/20">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-4">
+                                {wishes.map((wish, index) => {
+                                    const rotClass = rotations[index % rotations.length];
+                                    return (
+                                        <div
+                                            key={wish.id}
+                                            style={{
+                                                backgroundColor: wish.color,
+                                                minHeight: "130px",
+                                            }}
+                                            className={`w-full ${rotClass} transition-all duration-300 hover:scale-105 hover:rotate-0 flex flex-col justify-between p-3.5 shadow-md border border-stone-300/40 relative rounded-sm`}
+                                        >
+                                            {/* Red push-pin */}
+                                            <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10">
+                                                <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-red-400 to-red-600 border border-white/60 shadow" />
+                                                <div className="w-0.5 h-0.5 bg-stone-500 mx-auto -mt-0.5 rounded-b-sm" />
+                                            </div>
+
+                                            {/* Content */}
+                                            <div className="w-full flex flex-col h-full justify-between pt-1">
+                                                <div>
+                                                    <span className="text-xs font-bold italic leading-none border-b border-[#743951]/10 pb-0.5 block w-full text-center truncate">
+                                                        {wish.name}
+                                                    </span>
+                                                    <p className="text-[10px] font-normal leading-relaxed mt-2 text-stone-850 italic text-left max-h-[80px] overflow-y-auto scrollbar-hide">
+                                                        "{wish.text}"
+                                                    </p>
+                                                </div>
+                                                <div className="flex justify-between items-center mt-2 pt-1 border-t border-[#743951]/5">
+                                                    <div className="flex gap-2">
+                                                        {wish.creatorId === userId && (
+                                                            <>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setEditingWishId(wish.id);
+                                                                        setName(wish.name);
+                                                                        setWishText(wish.text);
+                                                                        setSelectedColor(wish.color);
+                                                                        setIsViewAllOpen(false); // Close modal to focus on edit form
+                                                                    }}
+                                                                    className="p-1 hover:bg-[#743951]/15 rounded text-[#743951] cursor-pointer transition-colors"
+                                                                    title="Edit ucapan"
+                                                                >
+                                                                    <Pencil className="w-3.5 h-3.5" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDeleteWish(wish.id);
+                                                                    }}
+                                                                    className="p-1 hover:bg-red-100 rounded text-red-600 cursor-pointer transition-colors"
+                                                                    title="Hapus ucapan"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    <span className="text-[8px] font-semibold text-stone-500/80 text-right font-sans">
+                                                        {wish.date}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
