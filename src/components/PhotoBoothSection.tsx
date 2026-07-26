@@ -1,0 +1,331 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
+import { Camera, Upload, Check, RefreshCw } from "lucide-react";
+
+interface PinnedPhoto {
+    id: string;
+    guestName: string;
+    imageSrc: string;
+    caption: string;
+    date: string;
+}
+
+const DEFAULT_PHOTOS: PinnedPhoto[] = [
+    {
+        id: "photo-1",
+        guestName: "Alza & Keluarga",
+        imageSrc: "/assets/images/img_1.png",
+        caption: "Abadikan momen bahagia!",
+        date: "26.07.2026",
+    },
+    {
+        id: "photo-2",
+        guestName: "Rian Ardiansyah",
+        imageSrc: "/assets/images/img_2.png",
+        caption: "Kondangan vibes!",
+        date: "26.07.2026",
+    },
+    {
+        id: "photo-3",
+        guestName: "Keluarga Sukardi",
+        imageSrc: "/assets/images/img_3.png",
+        caption: "Samawa ya!",
+        date: "26.07.2026",
+    },
+    {
+        id: "photo-4",
+        guestName: "Amanda & Friends",
+        imageSrc: "/assets/images/img_4.png",
+        caption: "Best day ever!",
+        date: "26.07.2026",
+    },
+    {
+        id: "photo-5",
+        guestName: "Budi Santoso",
+        imageSrc: "/assets/images/img_5.png",
+        caption: "Congrats bro!",
+        date: "26.07.2026",
+    },
+    {
+        id: "photo-6",
+        guestName: "Siti Lestari",
+        imageSrc: "/assets/images/img_6.png",
+        caption: "Happy wedding!",
+        date: "26.07.2026",
+    },
+    {
+        id: "photo-7",
+        guestName: "Dewi & Hendra",
+        imageSrc: "/assets/images/img_1.png",
+        caption: "Sangat seru!",
+        date: "26.07.2026",
+    },
+    {
+        id: "photo-8",
+        guestName: "Adi Nugroho",
+        imageSrc: "/assets/images/img_2.png",
+        caption: "Selamat ya!",
+        date: "26.07.2026",
+    },
+];
+
+export default function PhotoBoothSection() {
+    const [photos, setPhotos] = useState<PinnedPhoto[]>([]);
+    const [guestName, setGuestName] = useState("");
+    const [caption, setCaption] = useState("");
+    const [tempImage, setTempImage] = useState<string | null>(null);
+    const [submitting, setSubmitting] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        const stored = localStorage.getItem("alzah_booth");
+        if (stored) {
+            try {
+                setPhotos(JSON.parse(stored));
+            } catch (e) {
+                setPhotos(DEFAULT_PHOTOS);
+            }
+        } else {
+            setPhotos(DEFAULT_PHOTOS);
+        }
+    }, []);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                setTempImage(event.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const triggerFileInput = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!guestName.trim() || !tempImage) return;
+
+        setSubmitting(true);
+        setTimeout(() => {
+            const newPhoto: PinnedPhoto = {
+                id: `photo-${Date.now()}`,
+                guestName: guestName.trim(),
+                imageSrc: tempImage,
+                caption: caption.trim() || "Momen bahagia!",
+                date: new Date().toLocaleDateString("id-ID", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                }).replace(/\//g, "."),
+            };
+
+            const updatedPhotos = [newPhoto, ...photos];
+            setPhotos(updatedPhotos);
+            localStorage.setItem("wedding_booth_photos_v2", JSON.stringify(updatedPhotos));
+
+            setSubmitting(false);
+            setSubmitted(true);
+            setGuestName("");
+            setCaption("");
+            setTempImage(null);
+
+            setTimeout(() => setSubmitted(false), 3000);
+        }, 1500);
+    };
+
+    const handleResetImage = () => {
+        setTempImage(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
+
+    const activePhotos = photos.slice(0, 12);
+    const rotations = ["rotate-[-3deg]", "rotate-[2deg]", "rotate-[-1deg]", "rotate-[3deg]", "rotate-[-2deg]"];
+
+    return (
+        <>
+            {/* Photo Booth Form (Landscape Paper Card Layout) - Width 480px, left: 2190px */}
+            <div
+                style={{
+                    position: "absolute",
+                    left: "2190px",
+                    top: "1120px",
+                    width: "480px",
+                    height: "180px",
+                }}
+                className=" p-4 font-kalam text-[#743951] select-none flex flex-col justify-between"
+            >
+                <div className="text-[15px] font-bold italic pb-1 w-full text-start leading-none">
+                    Abadikan Momen
+                </div>
+
+                {submitted ? (
+                    <div className="flex flex-col items-center justify-center py-2 gap-1 text-center flex-1">
+                        <Check className="w-7 h-7 text-emerald-500 animate-image-pop" />
+                        <span className="text-[13px] font-bold">Terpasang!</span>
+                        <p className="text-[10px] text-stone-600 leading-tight">
+                            Foto Anda telah berhasil ditempel di dinding foto!
+                        </p>
+                    </div>
+                ) : (
+                    <form onSubmit={handleSubmit} className="flex gap-4 w-full text-left mt-1.5 flex-1 items-stretch">
+                        {/* Left Column: Name & Caption */}
+                        <div className="flex-[1.2] flex flex-col justify-between">
+                            <div className="flex flex-col gap-0.5">
+                                <label className="text-[10px] font-semibold">Nama Anda</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={guestName}
+                                    onChange={(e) => setGuestName(e.target.value)}
+                                    placeholder="Tulis nama Anda..."
+                                    className="px-2 py-0.5 rounded border border-[#743951]/20 bg-stone-50/50 text-[11px] text-stone-800 focus:outline-none focus:border-[#743951] transition-colors"
+                                />
+                            </div>
+
+                            <div className="flex flex-col gap-0.5 mt-1 flex-1">
+                                <label className="text-[10px] font-semibold">Keterangan</label>
+                                <textarea
+                                    rows={2}
+                                    value={caption}
+                                    onChange={(e) => setCaption(e.target.value)}
+                                    placeholder="cth: Kondangan vibes!"
+                                    className="px-2 py-1 rounded border border-[#743951]/20 bg-stone-50/50 text-[10px] text-stone-800 focus:outline-none focus:border-[#743951] transition-colors resize-none flex-1 min-h-[52px]"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Right Column: Image Uploader & Submit */}
+                        <div className="flex-1 flex flex-col justify-between pl-3.5 ">
+                            <div className="relative w-full h-[72px] bg-stone-100 border border-stone-200 rounded flex items-center justify-center overflow-hidden">
+                                {tempImage ? (
+                                    <>
+                                        <img
+                                            src={tempImage}
+                                            alt="Temp Upload"
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleResetImage}
+                                            className="absolute top-1 right-1 w-5.5 h-5.5 bg-white/90 hover:bg-white rounded-full flex items-center justify-center cursor-pointer shadow-sm text-stone-600 transition-transform active:scale-90"
+                                        >
+                                            <RefreshCw className="w-2.5 h-2.5" />
+                                        </button>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center p-2 gap-0.5 text-center text-stone-400">
+                                        <Camera className="w-4.5 h-4.5 opacity-60 text-[#743951]" />
+                                        <button
+                                            type="button"
+                                            onClick={triggerFileInput}
+                                            className="px-2 py-0.5 bg-[#743951] text-white rounded text-[8px] cursor-pointer shadow-sm mt-0.5 hover:bg-[#5c2d40]"
+                                        >
+                                            Pilih Foto
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={submitting || !tempImage}
+                                className="w-full py-1.5 bg-[#743951] text-white font-semibold rounded shadow-sm hover:bg-[#5c2d40] active:scale-[0.98] text-[11px] cursor-pointer disabled:opacity-50 select-none mt-1.5"
+                            >
+                                {submitting ? "Menempelkan..." : "Tempel Foto"}
+                            </button>
+                        </div>
+                    </form>
+                )}
+            </div>
+
+            {/* Pinned Real-time Photos (Polaroids Grid) - Width 480px, ends at 2670px */}
+            <div
+                style={{
+                    position: "absolute",
+                    left: "2190px",
+                    top: "1320px",
+                    width: "480px",
+                }}
+                className="grid grid-cols-4 gap-2.5"
+            >
+                {activePhotos.map((photo, index) => {
+                    const rotClass = rotations[index % rotations.length];
+
+                    return (
+                        <div
+                            key={photo.id}
+                            style={{
+                                height: "145px",
+                            }}
+                            className={`w-full ${rotClass} bg-[#fafaf9] rounded shadow-md border border-stone-200 p-1.5 pb-2.5 flex flex-col items-center transition-all duration-300 hover:scale-105 hover:rotate-0 select-none relative`}
+                        >
+                            {/* Tape decoration on top */}
+                            <div className="absolute -top-1.5 w-6 h-2 bg-amber-100/60 rotate-[-8deg] rounded-sm shadow-sm" />
+
+                            {/* Image container inside Polaroid */}
+                            <div className="relative w-full aspect-square bg-stone-100 border border-stone-200/50 rounded-sm overflow-hidden">
+                                <Image
+                                    src={photo.imageSrc}
+                                    alt="Polaroid View"
+                                    fill
+                                    className="object-cover"
+                                    unoptimized
+                                />
+                            </div>
+
+                            {/* Text details inside polaroid bottom margin */}
+                            <div className="w-full flex flex-col mt-1 font-kalam text-center leading-tight gap-y-0.5">
+                                <span className="text-[9px] font-bold text-[#743951] truncate">
+                                    {photo.guestName}
+                                </span>
+                                <span className="text-[7.5px] text-stone-600 truncate italic">
+                                    "{photo.caption}"
+                                </span>
+                                <span className="text-[6.5px] text-stone-400 mt-0.5 text-right font-sans font-semibold">
+                                    {photo.date}
+                                </span>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* View All Photos Button */}
+            <div
+                style={{
+                    position: "absolute",
+                    left: "2190px",
+                    top: "1760px",
+                    width: "480px",
+                }}
+                className="flex justify-center"
+            >
+                <button
+                    type="button"
+                    className="px-5 py-1 bg-white/90 border border-[#743951]/20 hover:bg-white text-[#743951] font-kalam font-bold text-[11px] rounded-full shadow-sm cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-image-pop"
+                >
+                    View All Photos ({photos.length})
+                </button>
+            </div>
+
+            {/* Hidden Input file helper */}
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+            />
+        </>
+    );
+}

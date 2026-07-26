@@ -78,13 +78,13 @@ export interface CanvasSectionWaypoint {
  *   1.00  → Down to (1911, 1280.19) — bottom-far-right
  */
 export const SECTION_WAYPOINTS: readonly CanvasSectionWaypoint[] = [
-  { id: "section-1", label: "Bismillah", progress: 0.0, scale: 3.0 },
-  { id: "section-2", label: "Mempelai", progress: 0.15, scale: 3.2 },
-  { id: "section-3", label: "Love Story", progress: 0.3, scale: 2.8 },
+  { id: "section-1", label: "Love Story", progress: 0.0, scale: 3.0 },
+  { id: "section-2", label: "Groom & Bride", progress: 0.15, scale: 3.2 },
+  { id: "section-3", label: "Our Gallery", progress: 0.3, scale: 2.8 },
   { id: "section-4", label: "Akad & Resepsi", progress: 0.45, scale: 3.0 },
-  { id: "section-5", label: "Galeri", progress: 0.6, scale: 2.5 },
-  { id: "section-6", label: "Lokasi", progress: 0.75, scale: 3.0 },
-  { id: "section-7", label: "RSVP", progress: 0.9, scale: 3.2 },
+  { id: "section-5", label: "Wedding Gift", progress: 0.6, scale: 2.5 },
+  { id: "section-6", label: "Wedding Wish", progress: 0.75, scale: 3.0 },
+  { id: "section-7", label: "Photo Both", progress: 0.9, scale: 3.2 },
 ] as const;
 
 /**

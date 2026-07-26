@@ -122,5 +122,23 @@ export default function GallerySection() {
         unoptimized
       />
     </div>
+
+    <div
+      style={{
+        position: "absolute",
+        left: "1248px",
+        top: "1653px",
+      }}
+      className="w-[214px] h-[214px] transition-transform duration-300 hover:scale-105"
+    >
+      <Image
+        src="/assets/images/img_6.png"
+        alt="baloon"
+        fill
+        className="object-cover"
+        priority
+        unoptimized
+      />
+    </div>
   </>);
 }

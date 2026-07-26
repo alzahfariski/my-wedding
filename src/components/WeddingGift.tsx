@@ -167,9 +167,9 @@ export default function WeddingGiftSection() {
                 style={{
                     position: "absolute",
                     left: "1900px",
-                    top: "666px",
+                    top: "646px",
                 }}
-                className="w-[208px] h-[227px] transition-transform duration-300 hover:scale-105 flex flex-col items-center justify-center relative p-6 text-center select-none"
+                className="w-[168px] h-[197px] transition-transform duration-300 hover:scale-105 flex flex-col items-center justify-center relative p-6 text-center select-none"
             >
                 <Image
                     src="/assets/cover/stiky.png"
@@ -182,10 +182,10 @@ export default function WeddingGiftSection() {
 
                 {/* Card Overlay Content */}
                 <div className="relative z-10 w-full h-full flex flex-col items-center justify-center gap-2 font-kalam text-[#743951]">
-                    <span className="text-[16px] font-bold italic leading-none">
+                    <span className="text-[12px] font-bold italic leading-none">
                         Gift Box Address
                     </span>
-                    <p className="text-[12px] font-normal leading-tight max-w-[180px] select-text mt-1">
+                    <p className="text-[10px] font-normal leading-tight max-w-[140px] select-text mt-1">
                         JI. Poros, Rt. 015, Desa Mekar Jaya (SPG) Merangin, Jambi
                     </p>
 
@@ -207,6 +207,27 @@ export default function WeddingGiftSection() {
                         )}
                     </button>
                 </div>
+
+
+            </div>
+
+            <div
+                style={{
+                    position: "absolute",
+                    left: "1996px",
+                    top: "802px",
+                }}
+                className="w-[214px] h-[214px] transition-transform duration-300 hover:scale-105"
+            >
+                <Image
+                    src="/assets/images/mobil.png"
+                    alt="baloon"
+                    width={108}
+                    height={108}
+                    className="object-cover"
+                    priority
+                    unoptimized
+                />
             </div>
 
             {/* Confirmation Form Card (positioned below all elements at left: 1590px, top: 940px, width: 550px) */}
