@@ -19,6 +19,22 @@ export default function AppLoader({ children, guestName }: AppLoaderProps) {
     setMounted(true);
   }, []);
 
+  // Lock scroll of body and html during loading/cover transitions until the engine is fully ready
+  useEffect(() => {
+    if (status !== "ready") {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      window.scrollTo(0, 0);
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [status]);
+
   // Handle automatic state transitions from fading states to static states
   useEffect(() => {
     if (status === "fading-to-cover") {
@@ -34,6 +50,7 @@ export default function AppLoader({ children, guestName }: AppLoaderProps) {
 
       const readyTimer = setTimeout(() => {
         setStatus("ready");
+        window.dispatchEvent(new CustomEvent("scroll-ready"));
       }, 4900); // 1300ms cover transition + 800ms hold + 2800ms zoom
 
       return () => {

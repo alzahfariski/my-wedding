@@ -97,4 +97,4 @@ export const DEFAULT_ZOOM = 1.0;
 export const SCROLL_HEIGHT_MULTIPLIER = 7;
 
 /** Background image path for the corkboard texture */
-export const CORKBOARD_IMAGE_PATH = "/assets/images/corkboard.png";
+export const CORKBOARD_IMAGE_PATH = "/assets/images/corkboard.jpg";

@@ -84,23 +84,26 @@ export default function HomeContent() {
       y: vh / 2 - 0.5 * CANVAS_HEIGHT * initialScale,
       scale: initialScale,
       transformOrigin: "0% 0%",
+      force3D: true,
     });
 
     let introPlaying = true;
 
-    // ScrollTrigger — zoom + pan along path
-    const trigger = ScrollTrigger.create({
-      trigger: spacer,
-      start: "top top",
-      end: "bottom bottom",
-      scrub: 1.2,
-      onUpdate: (self) => {
+    // Playhead progress object that will be animated by GSAP ScrollTrigger
+    const playhead = { progress: 0 };
+
+    // Tween playhead progress smoothly from 0 to 1
+    const anim = gsap.to(playhead, {
+      progress: 1,
+      ease: "none",
+      paused: true,
+      onUpdate: () => {
         if (introPlaying) return; // skip updates during intro zoom
 
         const isMobile = window.innerWidth < 768;
         const scaleMultiplier = isMobile ? 0.75 : 1.0;
 
-        const pathProgress = self.progress;
+        const pathProgress = playhead.progress;
         const point = getPointAtProgress(pathEl, pathProgress);
 
         // Interpolate zoom scale between waypoints based on pathProgress
@@ -129,17 +132,69 @@ export default function HomeContent() {
         const tx = vw / 2 - point.x * CANVAS_WIDTH * totalScale;
         const ty = vh / 2 - point.y * CANVAS_HEIGHT * totalScale;
 
-        gsap.to(canvas, {
+        // Instant update since GSAP's scrub handles the smooth interpolation beautifully
+        gsap.set(canvas, {
           x: tx,
           y: ty,
           scale: totalScale,
           transformOrigin: "0% 0%",
-          duration: 0.4,
-          ease: "power2.out",
-          overwrite: "auto",
+          force3D: true,
         });
       },
     });
+
+    // ScrollTrigger — scrub the animation timeline
+    const trigger = ScrollTrigger.create({
+      trigger: spacer,
+      start: "top top",
+      end: "bottom bottom",
+      scrub: 1.0, // Smooth ease catchup (restrains user from brutal scroll, keeping it smooth)
+      animation: anim,
+    });
+
+    // Auto Scroll state variables
+    let autoScrollActive = false;
+    let userInteractionTimeout: NodeJS.Timeout | null = null;
+    let lastTime = performance.now();
+    let animationFrameId: number;
+
+    const pixelsPerSecond = 40; // Cinematic slow speed (pixels per second)
+
+    const autoScrollLoop = (time: number) => {
+      const dt = Math.min((time - lastTime) / 1000, 0.1); // clamp delta time to avoid jumps on tab switch
+      lastTime = time;
+
+      if (autoScrollActive && !introPlaying) {
+        const currentScroll = window.scrollY;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+
+        if (currentScroll >= maxScroll - 5) {
+          autoScrollActive = false; // Stop auto-scroll at the bottom
+        } else {
+          window.scrollTo(0, currentScroll + pixelsPerSecond * dt);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(autoScrollLoop);
+    };
+
+    // Start requestAnimationFrame loop immediately
+    animationFrameId = requestAnimationFrame(autoScrollLoop);
+
+    // Pause auto-scroll when user manually scrolls or interacts
+    const stopAutoScroll = () => {
+      autoScrollActive = false;
+      if (userInteractionTimeout) clearTimeout(userInteractionTimeout);
+      
+      userInteractionTimeout = setTimeout(() => {
+        // Resume auto-scroll if the page is not scrolled to the very bottom
+        const currentScroll = window.scrollY;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        if (currentScroll < maxScroll - 10) {
+          autoScrollActive = true;
+        }
+      }, 2500); // Resume auto-scroll after 2.5 seconds of inactivity
+    };
 
     // Intro zoom animation function
     const playIntroAnimation = () => {
@@ -158,21 +213,49 @@ export default function HomeContent() {
         y: ty,
         scale: targetScale,
         transformOrigin: "0% 0%",
-        duration: 2.8, // Smooth, slow zoom-in
-        delay: 0.8, // Hold at full scale for 0.8 seconds
+        duration: 2.6, // Smooth zoom-in
+        delay: 0.6,
         ease: "power2.inOut",
         overwrite: "auto",
+        force3D: true,
         onComplete: () => {
           introPlaying = false;
+          // Synchronize playhead and timeline instantly to initial scroll trigger position
+          playhead.progress = trigger.progress;
+          anim.progress(trigger.progress);
         },
       });
     };
 
+    const handleScrollReady = () => {
+      // Force ScrollTrigger to refresh calculations after parent wrapper transforms are removed and overflow is unlocked
+      ScrollTrigger.refresh();
+      // Resynchronize animation to trigger progress
+      playhead.progress = trigger.progress;
+      anim.progress(trigger.progress);
+      
+      // Start auto scroll now that the scroll is unlocked and layout is stable
+      autoScrollActive = true;
+    };
+
     window.addEventListener("open-board", playIntroAnimation);
+    window.addEventListener("scroll-ready", handleScrollReady);
+    window.addEventListener("wheel", stopAutoScroll, { passive: true });
+    window.addEventListener("touchmove", stopAutoScroll, { passive: true });
+    window.addEventListener("keydown", stopAutoScroll, { passive: true });
+    window.addEventListener("mousedown", stopAutoScroll, { passive: true });
 
     return () => {
       trigger.kill();
+      anim.kill();
+      cancelAnimationFrame(animationFrameId);
+      if (userInteractionTimeout) clearTimeout(userInteractionTimeout);
       window.removeEventListener("open-board", playIntroAnimation);
+      window.removeEventListener("scroll-ready", handleScrollReady);
+      window.removeEventListener("wheel", stopAutoScroll);
+      window.removeEventListener("touchmove", stopAutoScroll);
+      window.removeEventListener("keydown", stopAutoScroll);
+      window.removeEventListener("mousedown", stopAutoScroll);
     };
   }, []);
 

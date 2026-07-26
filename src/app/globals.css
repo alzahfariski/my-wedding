@@ -112,6 +112,16 @@
   width: 3000px;
   height: 2500px;
   will-change: transform;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* Force GPU acceleration on all interactive and animated layers inside the canvas board */
+.canvas-board div,
+.canvas-board img {
+  will-change: transform;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
 }
 
 /**
