@@ -18,6 +18,7 @@ import LoveStorySection from "./LoveStorySection";
 import GroomBrideSection from "./GroomBrideSection";
 import GallerySection from "./GallerySection";
 import DateTimeSection from "./DateTimeSection";
+import WeddingGiftSection from "./WeddingGift";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -214,6 +215,9 @@ export default function HomeContent() {
 
           {/* section 4 - date time */}
           <DateTimeSection />
+
+          {/* section 5 - wedding gift */}
+          <WeddingGiftSection />
         </div>
       </div>
 

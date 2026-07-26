@@ -119,9 +119,9 @@ export default function GroomBrideSection() {
         style={{
           position: "absolute",
         }}
-        className="left-[830px] md:left-[1033px] top-[1795px] md:top-[1800px] w-[180px] md:w-[204px] font-kalam text-[12px] md:text-[14px] font-normal text-[#743951] leading-relaxed select-none"
+        className="left-[830px] md:left-[1033px] top-[1795px] md:top-[1800px] w-[160px] md:w-[184px] font-kalam text-[12px] md:text-[14px] font-normal text-[#743951] leading-relaxed select-none"
       >
-        Putri dari Bapak Suyitno (banjir) & Ibu Pujirah
+        Putri dari Bapak Suyitno & Ibu Pujirah
       </div>
     </>
   );

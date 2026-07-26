@@ -58,6 +58,24 @@ export default function DateTimeSection() {
         It’s the Day!
       </div>
 
+      <div
+        style={{
+          position: "absolute",
+          left: "882px",
+          top: "626px",
+        }}
+        className="w-[40px] h-[40px] transition-transform duration-300 hover:scale-105"
+      >
+        <Image
+          src="/assets/icons/map.png"
+          alt="Map Icon"
+          fill
+          className="object-cover"
+          priority
+          unoptimized
+        />
+      </div>
+
 
       <div
         style={{
