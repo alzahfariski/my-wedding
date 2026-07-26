@@ -52,13 +52,15 @@ export default function CoverPage({ guestName, onOpen }: CoverPageProps) {
           </div>
 
           {/* Open Board Button */}
-          <button
-            onClick={onOpen}
-            className="flex items-center gap-[2vw] px-[5vw] py-[2.5vw] mt-[5vw] bg-[#947268] text-white font-semibold rounded-full border border-white/60 shadow-lg shadow-[#947268]/20 hover:bg-[#836158] hover:shadow-xl hover:shadow-[#947268]/30 hover:scale-105 active:scale-95 transition-all duration-300 text-[3.5vw] tracking-wider cursor-pointer"
-          >
-            <FolderOpen className="w-[4vw] h-[4vw]" />
-            <span>Open Board</span>
-          </button>
+          <div className="w-full flex justify-center mt-[5vw]">
+            <button
+              onClick={onOpen}
+              className="flex items-center gap-[2vw] px-[5vw] py-[2.5vw] bg-[#947268] text-white font-semibold rounded-full border border-white/60 shadow-lg shadow-[#947268]/20 hover:bg-[#836158] hover:shadow-xl hover:shadow-[#947268]/30 hover:scale-105 active:scale-95 transition-all duration-300 text-[3.5vw] tracking-wider cursor-pointer"
+            >
+              <FolderOpen className="w-[4vw] h-[4vw]" />
+              <span>Open Board</span>
+            </button>
+          </div>
         </div>
 
       </div>

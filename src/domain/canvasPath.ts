@@ -1,0 +1,100 @@
+/**
+ * Canvas Path Configuration
+ *
+ * Pure domain constants for the Infinite Canvas scroll experience.
+ * Contains the SVG path data, canvas dimensions, and section waypoints.
+ * This file is framework-agnostic — no React, Next.js, or GSAP imports.
+ */
+
+/** The SVG path that defines the camera's travel route across the canvas */
+export const CANVAS_SVG_PATH =
+  "M0.5 1.19336V1133.69L519 892.693L1172.5 1280.19V798.193L519 431.693V1.19336H1279.5V431.693H1481L1926.5 1.19336L1911 1280.19";
+
+/** SVG path native viewBox dimensions (px) */
+export const PATH_WIDTH = 1928;
+export const PATH_HEIGHT = 1282;
+
+/** SVG viewBox string for the path element (used for hidden calculation SVG) */
+export const PATH_VIEWBOX = `0 0 ${PATH_WIDTH} ${PATH_HEIGHT}`;
+
+/**
+ * Full corkboard canvas dimensions (px).
+ * The corkboard image is 3000×2500. The SVG path sits inside
+ * the inner white area, offset from the wooden frame edges.
+ */
+export const CANVAS_WIDTH = 3000;
+export const CANVAS_HEIGHT = 2500;
+
+/**
+ * Offset to position the SVG path inside the corkboard's inner area.
+ * The wooden frame takes approximately ~536px left/right and ~609px top/bottom.
+ * This centers the 1928×1282 path within the 3000×2500 canvas.
+ *
+ * Calculation:
+ *   X offset = (3000 - 1928) / 2 = 536
+ *   Y offset = (2500 - 1282) / 2 = 609
+ */
+export const PATH_OFFSET_X = (CANVAS_WIDTH - PATH_WIDTH) / 2;
+export const PATH_OFFSET_Y = (CANVAS_HEIGHT - PATH_HEIGHT) / 2;
+
+/** Canvas viewBox string (full corkboard) */
+export const CANVAS_VIEWBOX = `0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`;
+
+/**
+ * Section waypoints along the path.
+ * Each entry defines a "stop" where a content section is displayed.
+ * `progress` is a 0→1 value along the total path length.
+ * The camera will center on the path point at each progress value.
+ */
+export interface CanvasSectionWaypoint {
+  /** Unique id for the section */
+  readonly id: string;
+  /** Label / title for the section */
+  readonly label: string;
+  /** Progress along the SVG path (0 = start, 1 = end) */
+  readonly progress: number;
+  /** Optional scale multiplier for 3D tunnel zoom effect (default 1) */
+  readonly scale?: number;
+  /** Optional rotation in degrees */
+  readonly rotation?: number;
+}
+
+/**
+ * Predefined section waypoints distributed along the SVG path.
+ * These correspond to the key turning points / segments of the path.
+ *
+ * Path breakdown (approximate segments):
+ *   0.00  → Start at (0.5, 1.19) — top-left
+ *   ~0.12 → Drop to (0.5, 1133.69) — bottom-left
+ *   ~0.22 → Move to (519, 892.69) — center-left
+ *   ~0.35 → Move to (1172.5, 1280.19) — bottom-center
+ *   ~0.45 → Up to (1172.5, 798.19) — mid-center
+ *   ~0.55 → Back to (519, 431.69) — center-left upper
+ *   ~0.65 → Up to (519, 1.19) — top-left area
+ *   ~0.75 → Right to (1279.5, 1.19) — top-center-right
+ *   ~0.82 → Down to (1279.5, 431.69) — mid-right
+ *   ~0.87 → Right to (1481, 431.69) — mid-far-right
+ *   ~0.93 → Diagonal to (1926.5, 1.19) — top-far-right
+ *   1.00  → Down to (1911, 1280.19) — bottom-far-right
+ */
+export const SECTION_WAYPOINTS: readonly CanvasSectionWaypoint[] = [
+  { id: "section-1", label: "Bismillah", progress: 0.0, scale: 3.0 },
+  { id: "section-2", label: "Mempelai", progress: 0.15, scale: 3.2 },
+  { id: "section-3", label: "Love Story", progress: 0.3, scale: 2.8 },
+  { id: "section-4", label: "Akad & Resepsi", progress: 0.45, scale: 3.0 },
+  { id: "section-5", label: "Galeri", progress: 0.6, scale: 2.5 },
+  { id: "section-6", label: "Lokasi", progress: 0.75, scale: 3.0 },
+  { id: "section-7", label: "RSVP", progress: 0.9, scale: 3.2 },
+] as const;
+
+/**
+ * Default zoom level when the camera is between waypoints.
+ * 1.0 = full corkboard visible. Values > 1 zoom in.
+ */
+export const DEFAULT_ZOOM = 1.0;
+
+/** Total virtual scroll height multiplier (relative to viewport height) */
+export const SCROLL_HEIGHT_MULTIPLIER = 7;
+
+/** Background image path for the corkboard texture */
+export const CORKBOARD_IMAGE_PATH = "/assets/images/corkboard.png";

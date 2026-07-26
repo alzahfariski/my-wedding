@@ -1,164 +1,235 @@
+"use client";
+
+import { useEffect, useRef, useCallback } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import {
+  CANVAS_SVG_PATH,
+  PATH_VIEWBOX,
+  PATH_OFFSET_X,
+  PATH_OFFSET_Y,
+  CANVAS_WIDTH,
+  CANVAS_HEIGHT,
+  SECTION_WAYPOINTS,
+  SCROLL_HEIGHT_MULTIPLIER,
+  CORKBOARD_IMAGE_PATH,
+} from "@/domain/canvasPath";
+import LoveStorySection from "./LoveStorySection";
+import GroomBrideSection from "./GroomBrideSection";
+import GallerySection from "./GallerySection";
+import DateTimeSection from "./DateTimeSection";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
+/**
+ * Coordinate point on the SVG path (in corkboard-normalized 0→1 space).
+ */
+interface PathPoint {
+  readonly x: number;
+  readonly y: number;
+}
+
+/**
+ * Samples a point at `progress` (0→1) along an SVG <path> element.
+ * Returns coordinates normalized to the corkboard (0→1).
+ */
+function getPointAtProgress(
+  pathElement: SVGPathElement,
+  progress: number
+): PathPoint {
+  const totalLength = pathElement.getTotalLength();
+  const clampedProgress = Math.max(0, Math.min(1, progress));
+  const point = pathElement.getPointAtLength(totalLength * clampedProgress);
+  return {
+    x: (point.x + PATH_OFFSET_X) / CANVAS_WIDTH,
+    y: (point.y + PATH_OFFSET_Y) / CANVAS_HEIGHT,
+  };
+}
+
+/**
+ * HomeContent — Corkboard + Scroll Zoom/Pan
+ *
+ * Corkboard is 3000x2500. It scales to cover the viewport.
+ * On scroll, the camera zooms in and pans along the SVG path.
+ */
 export default function HomeContent() {
+  const scrollSpacerRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLDivElement | null>(null);
+  const pathRef = useRef<SVGPathElement | null>(null);
+
+  const initScrollEngine = useCallback(() => {
+    const spacer = scrollSpacerRef.current;
+    const canvas = canvasRef.current;
+    const pathEl = pathRef.current;
+
+    if (!spacer || !canvas || !pathEl) return;
+
+    // Set scroll spacer height
+    spacer.style.height = `${SCROLL_HEIGHT_MULTIPLIER * 100}vh`;
+
+    // Compute base scale to cover viewport (equivalent of "background-size: cover")
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const baseScale = Math.max(vw / CANVAS_WIDTH, vh / CANVAS_HEIGHT);
+
+    // Initial state: view full (scale = 1.0) and centered on canvas center (0.5, 0.5)
+    const initialScale = baseScale * 1.0;
+    gsap.set(canvas, {
+      x: vw / 2 - 0.5 * CANVAS_WIDTH * initialScale,
+      y: vh / 2 - 0.5 * CANVAS_HEIGHT * initialScale,
+      scale: initialScale,
+      transformOrigin: "0% 0%",
+    });
+
+    let introPlaying = true;
+
+    // ScrollTrigger — zoom + pan along path
+    const trigger = ScrollTrigger.create({
+      trigger: spacer,
+      start: "top top",
+      end: "bottom bottom",
+      scrub: 1.2,
+      onUpdate: (self) => {
+        if (introPlaying) return; // skip updates during intro zoom
+
+        const isMobile = window.innerWidth < 768;
+        const scaleMultiplier = isMobile ? 0.75 : 1.0;
+
+        const pathProgress = self.progress;
+        const point = getPointAtProgress(pathEl, pathProgress);
+
+        // Interpolate zoom scale between waypoints based on pathProgress
+        let currentScale = SECTION_WAYPOINTS[0]?.scale ?? 3.0;
+        for (let i = 0; i < SECTION_WAYPOINTS.length - 1; i++) {
+          const a = SECTION_WAYPOINTS[i];
+          const b = SECTION_WAYPOINTS[i + 1];
+          if (pathProgress >= a.progress && pathProgress <= b.progress) {
+            const tScale =
+              (pathProgress - a.progress) / (b.progress - a.progress);
+            currentScale =
+              (a.scale ?? 3.0) +
+              ((b.scale ?? 3.0) - (a.scale ?? 3.0)) * tScale;
+            break;
+          }
+        }
+
+        const lastWp = SECTION_WAYPOINTS[SECTION_WAYPOINTS.length - 1];
+        if (pathProgress > (lastWp?.progress ?? 1.0)) {
+          currentScale = lastWp?.scale ?? 3.0;
+        }
+
+        const totalScale = baseScale * currentScale * scaleMultiplier;
+
+        // Position corkboard so the target point is centered in viewport
+        const tx = vw / 2 - point.x * CANVAS_WIDTH * totalScale;
+        const ty = vh / 2 - point.y * CANVAS_HEIGHT * totalScale;
+
+        gsap.to(canvas, {
+          x: tx,
+          y: ty,
+          scale: totalScale,
+          transformOrigin: "0% 0%",
+          duration: 0.4,
+          ease: "power2.out",
+          overwrite: "auto",
+        });
+      },
+    });
+
+    // Intro zoom animation function
+    const playIntroAnimation = () => {
+      const isMobile = window.innerWidth < 768;
+      const scaleMultiplier = isMobile ? 0.75 : 1.0;
+
+      const startPoint = getPointAtProgress(pathEl, 0.0);
+      const startScale = SECTION_WAYPOINTS[0]?.scale ?? 3.0;
+      const targetScale = baseScale * startScale * scaleMultiplier;
+
+      const tx = vw / 2 - startPoint.x * CANVAS_WIDTH * targetScale;
+      const ty = vh / 2 - startPoint.y * CANVAS_HEIGHT * targetScale;
+
+      gsap.to(canvas, {
+        x: tx,
+        y: ty,
+        scale: targetScale,
+        transformOrigin: "0% 0%",
+        duration: 2.8, // Smooth, slow zoom-in
+        delay: 0.8, // Hold at full scale for 0.8 seconds
+        ease: "power2.inOut",
+        overwrite: "auto",
+        onComplete: () => {
+          introPlaying = false;
+        },
+      });
+    };
+
+    window.addEventListener("open-board", playIntroAnimation);
+
+    return () => {
+      trigger.kill();
+      window.removeEventListener("open-board", playIntroAnimation);
+    };
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      initScrollEngine();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [initScrollEngine]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      ScrollTrigger.getAll().forEach((st) => st.kill());
+      initScrollEngine();
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [initScrollEngine]);
+
   return (
-    <div className="flex flex-col min-h-screen bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100 selection:bg-amber-100 selection:text-amber-900 transition-colors duration-300">
-      <main className="flex-1 max-w-5xl mx-auto px-6 py-16 md:py-24 w-full">
-        {/* Header */}
-        <header className="border-b border-stone-200 dark:border-stone-800 pb-8 mb-16 text-center md:text-left">
-          <span className="text-xs uppercase tracking-widest text-stone-500 font-medium">Design System</span>
-          <h1 className="text-4xl font-bold mt-2 tracking-tight text-stone-900 dark:text-stone-50">
-            Typography & Font Pairing
-          </h1>
-          <p className="text-stone-600 dark:text-stone-400 mt-2 max-w-xl">
-            A wedding-themed typography system featuring the elegant <strong className="font-semibold text-stone-800 dark:text-stone-200">Alex Brush</strong> script font and the warm, casual <strong className="font-semibold text-stone-800 dark:text-stone-200">Kalam</strong> handwritten font.
-          </p>
-        </header>
+    <>
+      {/* ── Viewport (Camera) ───────────────────────────── */}
+      <div className="canvas-viewport">
+        <div
+          ref={canvasRef}
+          className="canvas-board"
+          style={{
+            backgroundImage: `url(${CORKBOARD_IMAGE_PATH})`,
+            backgroundSize: "100% 100%",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }}
+        >
+          {/* section 1 - love story */}
+          <LoveStorySection />
 
-        {/* Mock Invitation Card Showcase */}
-        <section className="mb-20">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-stone-500 mb-6">
-            Live Preview / Font Pairing Demo
-          </h2>
-          <div className="relative overflow-hidden rounded-3xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-8 md:p-16 shadow-xl shadow-stone-100/50 dark:shadow-none flex flex-col items-center justify-center text-center">
-            {/* Elegant Background Accent */}
-            <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none bg-[radial-gradient(#854d0e_1.5px,transparent_1.5px)] [background-size:24px_24px]" />
-            
-            <div className="relative z-10 max-w-xl flex flex-col items-center">
-              <span className="text-script-accent text-amber-700 dark:text-amber-400 mb-2">
-                Save the Date
-              </span>
-              
-              <h3 className="text-script-display text-stone-800 dark:text-stone-100 my-4 py-2">
-                Romeo & Juliet
-              </h3>
-              
-              <p className="text-handwritten-title text-stone-700 dark:text-stone-300 mt-4 max-w-sm">
-                Are getting married!
-              </p>
-              
-              <div className="w-12 h-[1px] bg-amber-500/50 my-6" />
-              
-              <p className="text-handwritten-body text-stone-600 dark:text-stone-400 max-w-md">
-                We invite you to join us in celebrating our union, sharing laughter, and creating beautiful memories together.
-              </p>
-              
-              <div className="mt-8 text-handwritten-caption text-amber-800/80 dark:text-amber-400/80">
-                Saturday, October 24th, 2026 • The Grand Pavilion
-              </div>
-            </div>
-          </div>
-        </section>
+          {/* section 2 - the groom & bride */}
+          <GroomBrideSection />
 
-        {/* Style Guide Dictionary */}
-        <section>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-stone-500 mb-8">
-            Text Styles & Utility Classes Reference
-          </h2>
-          
-          <div className="grid gap-8 md:grid-cols-2">
-            
-            {/* Alex Brush Column */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 border-b border-stone-200 dark:border-stone-800 pb-3">
-                <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300">
-                  Alex Brush Font
-                </span>
-                <span className="text-xs text-stone-400 font-mono">--font-alex</span>
-              </div>
+          {/* section 3 - gallery */}
+          <GallerySection />
 
-              {/* Display Script */}
-              <div className="p-6 rounded-2xl bg-white dark:bg-stone-900 border border-stone-100 dark:border-stone-900/50 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-4">
-                  <span className="text-xs font-mono text-amber-700 dark:text-amber-400 font-semibold">
-                    .text-script-display
-                  </span>
-                  <span className="text-xs text-stone-400">Calligraphy Hero</span>
-                </div>
-                <div className="text-script-display text-stone-800 dark:text-stone-100 py-1">
-                  Wedding Ceremony
-                </div>
-              </div>
+          {/* section 4 - date time */}
+          <DateTimeSection />
+        </div>
+      </div>
 
-              {/* Title Script */}
-              <div className="p-6 rounded-2xl bg-white dark:bg-stone-900 border border-stone-100 dark:border-stone-900/50 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-4">
-                  <span className="text-xs font-mono text-amber-700 dark:text-amber-400 font-semibold">
-                    .text-script-title
-                  </span>
-                  <span className="text-xs text-stone-400">Calligraphy Header</span>
-                </div>
-                <div className="text-script-title text-stone-800 dark:text-stone-100">
-                  Special Invitation
-                </div>
-              </div>
+      {/* ── Hidden SVG for path calculations ─────────────── */}
+      <svg
+        className="absolute opacity-0 pointer-events-none"
+        viewBox={PATH_VIEWBOX}
+        width="0"
+        height="0"
+        aria-hidden="true"
+      >
+        <path ref={pathRef} d={CANVAS_SVG_PATH} />
+      </svg>
 
-              {/* Accent Script */}
-              <div className="p-6 rounded-2xl bg-white dark:bg-stone-900 border border-stone-100 dark:border-stone-900/50 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-4">
-                  <span className="text-xs font-mono text-amber-700 dark:text-amber-400 font-semibold">
-                    .text-script-accent
-                  </span>
-                  <span className="text-xs text-stone-400">Decorative Accent</span>
-                </div>
-                <div className="text-script-accent text-stone-800 dark:text-stone-100">
-                  and the celebration continues...
-                </div>
-              </div>
-
-            </div>
-
-            {/* Kalam Column */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 border-b border-stone-200 dark:border-stone-800 pb-3">
-                <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300">
-                  Kalam Font
-                </span>
-                <span className="text-xs text-stone-400 font-mono">--font-kalam</span>
-              </div>
-
-              {/* Handwritten Title */}
-              <div className="p-6 rounded-2xl bg-white dark:bg-stone-900 border border-stone-100 dark:border-stone-900/50 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-4">
-                  <span className="text-xs font-mono text-blue-700 dark:text-blue-400 font-semibold">
-                    .text-handwritten-title
-                  </span>
-                  <span className="text-xs text-stone-400">Casual Header</span>
-                </div>
-                <div className="text-handwritten-title text-stone-800 dark:text-stone-100">
-                  Our Love Story
-                </div>
-              </div>
-
-              {/* Handwritten Body */}
-              <div className="p-6 rounded-2xl bg-white dark:bg-stone-900 border border-stone-100 dark:border-stone-900/50 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-4">
-                  <span className="text-xs font-mono text-blue-700 dark:text-blue-400 font-semibold">
-                    .text-handwritten-body
-                  </span>
-                  <span className="text-xs text-stone-400">Casual Body Text</span>
-                </div>
-                <div className="text-handwritten-body text-stone-800 dark:text-stone-100">
-                  It all started with a simple hello. Years later, we decided to make it forever.
-                </div>
-              </div>
-
-              {/* Handwritten Caption */}
-              <div className="p-6 rounded-2xl bg-white dark:bg-stone-900 border border-stone-100 dark:border-stone-900/50 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-4">
-                  <span className="text-xs font-mono text-blue-700 dark:text-blue-400 font-semibold">
-                    .text-handwritten-caption
-                  </span>
-                  <span className="text-xs text-stone-400">Light Details / Notes</span>
-                </div>
-                <div className="text-handwritten-caption text-stone-800 dark:text-stone-100">
-                  * Please RSVP before September 15th
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-        </section>
-      </main>
-    </div>
+      {/* ── Scroll Spacer ────────────────────────────────── */}
+      <div ref={scrollSpacerRef} className="canvas-scroll-spacer" />
+    </>
   );
 }

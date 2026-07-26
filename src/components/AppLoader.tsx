@@ -28,10 +28,18 @@ export default function AppLoader({ children, guestName }: AppLoaderProps) {
       return () => clearTimeout(timer);
     }
     if (status === "fading-to-content") {
-      const timer = setTimeout(() => {
+      const openBoardTimer = setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("open-board"));
+      }, 1300);
+
+      const readyTimer = setTimeout(() => {
         setStatus("ready");
-      }, 1300); // matches the 1200ms transition duration
-      return () => clearTimeout(timer);
+      }, 4900); // 1300ms cover transition + 800ms hold + 2800ms zoom
+
+      return () => {
+        clearTimeout(openBoardTimer);
+        clearTimeout(readyTimer);
+      };
     }
   }, [status]);
 
@@ -40,34 +48,45 @@ export default function AppLoader({ children, guestName }: AppLoaderProps) {
     return <div className="min-h-screen bg-white" />;
   }
 
-  if (status === "ready") {
-    return <>{children}</>;
-  }
-
   const isFadingToCover = status === "fading-to-cover";
   const isCover = status === "cover";
   const isFadingToContent = status === "fading-to-content";
+  const isReady = status === "ready";
 
   return (
-    <div className="relative w-full h-dvh min-h-dvh overflow-hidden perspective-1200 transform-style-3d bg-white dark:bg-stone-950">
+    <div
+      className={
+        isReady
+          ? "w-full min-h-screen bg-white dark:bg-stone-950"
+          : "relative w-full h-dvh min-h-dvh overflow-hidden perspective-1200 transform-style-3d bg-white dark:bg-stone-950"
+      }
+    >
       
       {/* 1. Main Home Content Layer */}
-      {isFadingToContent && (
+      {(isCover || isFadingToContent || isReady) && (
         <div
-          className="w-full min-h-screen transition-all duration-[1200ms] cubic-bezier(0.25, 1, 0.5, 1)"
-          style={{
-            transform: isFadingToContent
-              ? "translate3d(0, 0, 0px) scale(1)"
-              : "translate3d(0, 0, -300px) scale(0.85)",
-            opacity: isFadingToContent ? 1 : 0,
-          }}
+          className={
+            isReady
+              ? "w-full min-h-screen"
+              : "w-full min-h-screen transition-all duration-[1200ms] cubic-bezier(0.25, 1, 0.5, 1)"
+          }
+          style={
+            isReady
+              ? undefined
+              : {
+                  transform: isFadingToContent
+                    ? "translate3d(0, 0, 0px) scale(1)"
+                    : "translate3d(0, 0, -300px) scale(0.85)",
+                  opacity: isFadingToContent ? 1 : 0,
+                }
+          }
         >
           {children}
         </div>
       )}
 
       {/* 2. Cover Page Layer */}
-      {(status === "loading" || isFadingToCover || isCover || isFadingToContent) && (
+      {!isReady && (status === "loading" || isFadingToCover || isCover || isFadingToContent) && (
         <div
           className="absolute inset-0 z-40 w-full h-full transition-all duration-[1200ms] cubic-bezier(0.76, 0, 0.24, 1)"
           style={{
