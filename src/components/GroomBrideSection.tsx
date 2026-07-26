@@ -2,6 +2,22 @@
 
 import Image from "next/image";
 
+const InstagramIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+  </svg>
+);
+
 export default function GroomBrideSection() {
   return (
     <>
@@ -31,7 +47,7 @@ export default function GroomBrideSection() {
           left: "494px",
           top: "1468px",
         }}
-        className="w-[240px] h-[312px] md:w-[334px] md:h-[435px] transition-transform duration-300 hover:scale-105"
+        className="w-[240px] h-[312px] md:w-[355px] md:h-[435px] transition-transform duration-300 hover:scale-105"
       >
         <Image
           src="/assets/images/img_4.png"
@@ -63,6 +79,21 @@ export default function GroomBrideSection() {
         Putra dari Bapak Sukardi & Ibu Fitri Lestari
       </div>
 
+      <a
+        href="https://www.instagram.com/alzahfariski/"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          position: "absolute",
+          left: "291px",
+          top: "1791px",
+        }}
+        className="flex items-center justify-center gap-2 px-4 py-2 bg-[#947268] text-white font-normal rounded-full border border-white/60 shadow-lg shadow-[#947268]/20 hover:bg-[#836158] hover:shadow-xl hover:shadow-[#947268]/30 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer select-none font-kalam text-[16px]"
+      >
+        <InstagramIcon className="w-4.5 h-4.5" />
+        <span>alzahfariski</span>
+      </a>
+
       {/* Title: "The Groom & Bride" at x=415 y=1323 */}
       <div
         style={{
@@ -90,7 +121,7 @@ export default function GroomBrideSection() {
       <div
         style={{
           position: "absolute",
-          left: "920px",
+          left: "880px",
           top: "1304px",
         }}
         className="w-[240px] h-[290px] md:w-[355px] md:h-[428px] transition-transform duration-300 hover:scale-105"
@@ -110,7 +141,7 @@ export default function GroomBrideSection() {
           position: "absolute",
           top: "1760px",
         }}
-        className="left-[830px] md:left-[1033px] font-kalam text-[24px] md:text-[32px] font-normal text-[#743951] leading-none select-none"
+        className="left-[810px] md:left-[1013px] font-kalam text-[24px] md:text-[32px] font-normal text-[#743951] leading-none select-none"
       >
         The Bride
       </div>
@@ -119,10 +150,26 @@ export default function GroomBrideSection() {
         style={{
           position: "absolute",
         }}
-        className="left-[830px] md:left-[1033px] top-[1795px] md:top-[1800px] w-[160px] md:w-[184px] font-kalam text-[12px] md:text-[14px] font-normal text-[#743951] leading-relaxed select-none"
+        className="left-[810px] md:left-[1013px] top-[1795px] md:top-[1800px] w-[160px] md:w-[184px] font-kalam text-[12px] md:text-[14px] font-normal text-[#743951] leading-relaxed select-none"
       >
         Putri dari Bapak Suyitno & Ibu Pujirah
       </div>
+
+      <a
+        href="https://www.instagram.com/effridwiyana/"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          position: "absolute",
+          left: "1003px",
+          top: "1870px",
+        }}
+        className="flex items-center justify-center gap-2 px-4 py-2 bg-[#947268] text-white font-normal rounded-full border border-white/60 shadow-lg shadow-[#947268]/20 hover:bg-[#836158] hover:shadow-xl hover:shadow-[#947268]/30 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer select-none font-kalam text-[16px]"
+      >
+        <InstagramIcon className="w-4.5 h-4.5" />
+        <span>effridwiyana</span>
+      </a>
+
     </>
   );
 }
