@@ -244,13 +244,13 @@ export default function HomeContent() {
     let lastTime = performance.now();
     let animationFrameId: number;
 
-    const pixelsPerSecond = 40; // Cinematic slow speed (pixels per second)
+    const pixelsPerSecond = 20; // Cinematic slow speed (pixels per second)
 
     const autoScrollLoop = (time: number) => {
       const dt = Math.min((time - lastTime) / 1000, 0.1); // clamp delta time to avoid jumps on tab switch
       lastTime = time;
 
-      if (autoScrollActive) {
+      if (autoScrollActive && !(window as any).isModalOpen) {
         const currentScroll = window.scrollY;
         const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
 
@@ -272,14 +272,34 @@ export default function HomeContent() {
       autoScrollActive = false;
       if (userInteractionTimeout) clearTimeout(userInteractionTimeout);
 
+      if ((window as any).isModalOpen) return;
+
       userInteractionTimeout = setTimeout(() => {
         // Resume auto-scroll if the page is not scrolled to the very bottom
         const currentScroll = window.scrollY;
         const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-        if (currentScroll < maxScroll - 10) {
+        if (currentScroll < maxScroll - 10 && !(window as any).isModalOpen) {
           autoScrollActive = true;
         }
       }, 2500); // Resume auto-scroll after 2.5 seconds of inactivity
+    };
+
+    const handlePauseAutoScroll = () => {
+      autoScrollActive = false;
+      if (userInteractionTimeout) clearTimeout(userInteractionTimeout);
+    };
+
+    const handleResumeAutoScroll = () => {
+      if (userInteractionTimeout) clearTimeout(userInteractionTimeout);
+      if (!(window as any).isModalOpen) {
+        userInteractionTimeout = setTimeout(() => {
+          const currentScroll = window.scrollY;
+          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+          if (currentScroll < maxScroll - 10 && !(window as any).isModalOpen) {
+            autoScrollActive = true;
+          }
+        }, 2500);
+      }
     };
 
     const handleScrollReady = () => {
@@ -290,7 +310,9 @@ export default function HomeContent() {
       anim.progress(trigger.progress);
 
       // Start auto scroll now that the scroll is unlocked and layout is stable
-      autoScrollActive = true;
+      if (!(window as any).isModalOpen) {
+        autoScrollActive = true;
+      }
 
       // Start music automatically on user entry gesture
       const audio = audioRef.current;
@@ -316,6 +338,8 @@ export default function HomeContent() {
 
     window.addEventListener("open-board-clicked", handleOpenBoardClicked);
     window.addEventListener("scroll-ready", handleScrollReady);
+    window.addEventListener("pause-auto-scroll", handlePauseAutoScroll);
+    window.addEventListener("resume-auto-scroll", handleResumeAutoScroll);
     window.addEventListener("wheel", stopAutoScroll, { passive: true });
     window.addEventListener("touchmove", stopAutoScroll, { passive: true });
     window.addEventListener("keydown", stopAutoScroll, { passive: true });
@@ -328,6 +352,8 @@ export default function HomeContent() {
       if (userInteractionTimeout) clearTimeout(userInteractionTimeout);
       window.removeEventListener("open-board-clicked", handleOpenBoardClicked);
       window.removeEventListener("scroll-ready", handleScrollReady);
+      window.removeEventListener("pause-auto-scroll", handlePauseAutoScroll);
+      window.removeEventListener("resume-auto-scroll", handleResumeAutoScroll);
       window.removeEventListener("wheel", stopAutoScroll);
       window.removeEventListener("touchmove", stopAutoScroll);
       window.removeEventListener("keydown", stopAutoScroll);
@@ -375,22 +401,22 @@ export default function HomeContent() {
             <LoveStorySection />
 
             {/* section 2 - the groom & bride */}
-            <GroomBrideSection />
+            {/* <GroomBrideSection /> */}
 
             {/* section 3 - gallery */}
-            <GallerySection />
+            {/* <GallerySection /> */}
 
             {/* section 4 - date time */}
-            <DateTimeSection />
+            {/* <DateTimeSection /> */}
 
             {/* section 5 - wedding gift */}
-            <WeddingGiftSection />
+            {/* <WeddingGiftSection /> */}
 
             {/* section 6 - Wedding Wish */}
-            <WeddingWishSection />
+            {/* <WeddingWishSection /> */}
 
             {/* section 7 - Photo Booth */}
-            <PhotoBoothSection />
+            {/* <PhotoBoothSection /> */}
           </div>
         </div>
       </div>
@@ -476,11 +502,10 @@ export default function HomeContent() {
               onMouseEnter={() => setIsMusicHovered(true)}
               onMouseLeave={() => setIsMusicHovered(false)}
               onClick={toggleMusic}
-              className={`flex items-center bg-white/70 backdrop-blur-md border border-stone-200/40 shadow-md rounded-full transition-all duration-500 ease-out cursor-pointer select-none overflow-hidden h-11 sm:h-12 ${
-                isMusicPlaying || isMusicHovered
-                  ? "w-[200px] sm:w-[220px] px-3 gap-2.5"
-                  : "w-11 sm:w-12 justify-center animate-pulse"
-              }`}
+              className={`flex items-center bg-white/70 backdrop-blur-md border border-stone-200/40 shadow-md rounded-full transition-all duration-500 ease-out cursor-pointer select-none overflow-hidden h-11 sm:h-12 ${isMusicPlaying || isMusicHovered
+                ? "w-[200px] sm:w-[220px] px-3 gap-2.5"
+                : "w-11 sm:w-12 justify-center animate-pulse"
+                }`}
               aria-label="Toggle background music"
             >
               {isMusicPlaying || isMusicHovered ? (
