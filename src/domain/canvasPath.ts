@@ -8,7 +8,7 @@
 
 /** The SVG path that defines the camera's travel route across the canvas */
 export const CANVAS_SVG_PATH =
-  "M0.5 1.19336V1133.69L519 892.693L1172.5 1280.19V798.193L519 431.693V1.19336H1279.5V431.693H1481L1926.5 1.19336L1911 1280.19";
+  "M46.0552 41.7568C46.0552 41.7568 -56.444 1142.76 46.0552 1174.26C148.554 1205.76 341.33 938.666 564.555 933.258C861.168 926.071 1086.05 1337.76 1284.55 1215.26C1483.05 1092.76 1282.69 1015.54 1218.05 838.758C1121.63 575.028 784.036 658.413 686.055 395.257C638.962 268.776 547.842 218.259 616.342 99.7578C684.843 -18.7432 1128.84 -45.7424 1319.34 99.7578C1509.84 245.258 1208.81 326.552 1328.55 395.257C1397.66 434.904 1454.11 409.13 1532.55 395.257C1749.45 356.899 1855.55 35.0631 1972.05 41.7568C2088.55 48.4506 1903.55 1215.26 1903.55 1215.26";
 
 /** SVG path native viewBox dimensions (px) */
 export const PATH_WIDTH = 1928;
@@ -79,12 +79,12 @@ export interface CanvasSectionWaypoint {
  */
 export const SECTION_WAYPOINTS: readonly CanvasSectionWaypoint[] = [
   { id: "section-1", label: "Love Story", progress: 0.0, scale: 3.0 },
-  { id: "section-2", label: "Groom & Bride", progress: 0.15, scale: 3.2 },
-  { id: "section-3", label: "Our Gallery", progress: 0.3, scale: 2.8 },
-  { id: "section-4", label: "Akad & Resepsi", progress: 0.45, scale: 3.0 },
-  { id: "section-5", label: "Wedding Gift", progress: 0.6, scale: 2.5 },
-  { id: "section-6", label: "Wedding Wish", progress: 0.75, scale: 3.0 },
-  { id: "section-7", label: "Photo Both", progress: 0.9, scale: 3.2 },
+  { id: "section-2", label: "Groom & Bride", progress: 0.11, scale: 3.2 },
+  { id: "section-3", label: "Our Gallery", progress: 0.35, scale: 2.8 },
+  { id: "section-4", label: "Akad & Resepsi", progress: 0.55, scale: 3.0 },
+  { id: "section-5", label: "Wedding Gift", progress: 0.68, scale: 2.5 },
+  { id: "section-6", label: "Wedding Wish", progress: 0.8, scale: 3.0 },
+  { id: "section-7", label: "Photo Booth", progress: 0.92, scale: 3.2 },
 ] as const;
 
 /**

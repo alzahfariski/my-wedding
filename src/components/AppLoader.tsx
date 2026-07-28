@@ -44,17 +44,12 @@ export default function AppLoader({ children, guestName }: AppLoaderProps) {
       return () => clearTimeout(timer);
     }
     if (status === "fading-to-content") {
-      const openBoardTimer = setTimeout(() => {
-        window.dispatchEvent(new CustomEvent("open-board"));
-      }, 1300);
-
       const readyTimer = setTimeout(() => {
         setStatus("ready");
         window.dispatchEvent(new CustomEvent("scroll-ready"));
-      }, 4900); // 1300ms cover transition + 800ms hold + 2800ms zoom
+      }, 1300); // 1300ms matches the cover transition duration
 
       return () => {
-        clearTimeout(openBoardTimer);
         clearTimeout(readyTimer);
       };
     }
@@ -74,8 +69,8 @@ export default function AppLoader({ children, guestName }: AppLoaderProps) {
     <div
       className={
         isReady
-          ? "w-full min-h-screen bg-white dark:bg-stone-950"
-          : "relative w-full h-dvh min-h-dvh overflow-hidden perspective-1200 transform-style-3d bg-white dark:bg-stone-950"
+          ? "w-full min-h-screen bg-white"
+          : "relative w-full h-dvh min-h-dvh overflow-hidden perspective-1200 transform-style-3d bg-white"
       }
     >
       
@@ -122,7 +117,10 @@ export default function AppLoader({ children, guestName }: AppLoaderProps) {
         >
           <CoverPage 
             guestName={guestName} 
-            onOpen={() => setStatus("fading-to-content")} 
+            onOpen={() => {
+              setStatus("fading-to-content");
+              window.dispatchEvent(new CustomEvent("open-board-clicked"));
+            }} 
           />
         </div>
       )}

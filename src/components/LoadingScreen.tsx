@@ -103,7 +103,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
         </div>
 
         {/* Kalam Handwritten Text */}
-        <h2 className="text-handwritten-title text-stone-900 mt-6 tracking-wide font-bold">
+        <h2 className="text-handwritten-title text-stone-900 mt-6 tracking-wide font-normal">
           sudah siap belum?
         </h2>
 

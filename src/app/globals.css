@@ -3,6 +3,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --vignette-rgb: 242, 239, 231;
+  --canvas-bg: #FAF9F6;
 }
 
 @theme inline {
@@ -145,16 +147,83 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans);
 }
+
+/**
+ * Scale wrapper inside the viewport that enables overall scaling
+ * on mobile screens while maintaining center anchor.
+ */
+@utility canvas-scale-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* Touch device hover fixes - override Tailwind's hover classes on touch devices */
+@media (hover: none) {
+  /* Prevent scaling and rotating on touch devices */
+  .hover\:scale-105:hover,
+  .hover\:scale-110:hover,
+  .hover\:rotate-0:hover {
+    transform: none !important;
+  }
+  
+  /* Prevent background color transition on touch hover */
+  .hover\:bg-\[\#5c2d40\]:hover {
+    background-color: #743951 !important;
+  }
+  .hover\:bg-\[\#836158\]:hover {
+    background-color: #947268 !important;
+  }
+  .hover\:bg-stone-300:hover {
+    background-color: #e7e5e4 !important;
+  }
+  .hover\:bg-stone-100:hover {
+    background-color: transparent !important;
+  }
+  .hover\:bg-white:hover {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+  }
+  .hover\:bg-\[\#743951\]\/15:hover {
+    background-color: transparent !important;
+  }
+  .hover\:bg-red-105:hover,
+  .hover\:bg-red-100:hover {
+    background-color: transparent !important;
+  }
+  
+  /* Reset button shadow enhancements */
+  .hover\:shadow-xl:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  }
+  .hover\:shadow-\[\#947268\]\/30:hover {
+    box-shadow: none !important;
+  }
+  .hover\:shadow-\[\#743951\]\/30:hover {
+    box-shadow: none !important;
+  }
+}
+
+/* Keyframes for Dynamic Island Music Controller */
+@keyframes spinRecord {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes bounceBar {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1.3); }
+}
+
+
 

@@ -398,7 +398,7 @@ export default function WeddingWishSection() {
             {/* View All Wishes Modal */}
             {isViewAllOpen && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-[#FAF9F6] border-2 border-[#743951]/30 rounded-2xl w-full max-w-4xl max-h-[85vh] flex flex-col p-6 shadow-2xl relative font-kalam text-[#743951]">
+                    <div className="bg-[#FAF9F6] border-2 border-[#743951]/30 rounded-2xl w-11/12 md:w-full max-w-4xl max-h-[90vh] md:max-h-[85vh] flex flex-col p-4 sm:p-8 shadow-2xl relative font-kalam text-[#743951]">
                         {/* Close button */}
                         <button
                             onClick={() => setIsViewAllOpen(false)}
