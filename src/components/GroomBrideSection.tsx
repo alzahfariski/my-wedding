@@ -44,8 +44,8 @@ export default function GroomBrideSection() {
       <div
         style={{
           position: "absolute",
-          left: "494px",
-          top: "1468px",
+          left: "514px",
+          top: "1528px",
         }}
         className="w-[240px] h-[312px] md:w-[355px] md:h-[435px] transition-transform duration-300 hover:scale-105"
       >
@@ -121,8 +121,8 @@ export default function GroomBrideSection() {
       <div
         style={{
           position: "absolute",
-          left: "880px",
-          top: "1304px",
+          left: "900px",
+          top: "1244px",
         }}
         className="w-[240px] h-[290px] md:w-[355px] md:h-[428px] transition-transform duration-300 hover:scale-105"
       >
@@ -139,7 +139,7 @@ export default function GroomBrideSection() {
       <div
         style={{
           position: "absolute",
-          top: "1760px",
+          top: "1700px",
         }}
         className="left-[810px] md:left-[1013px] font-kalam text-[24px] md:text-[32px] font-normal text-[#743951] leading-none select-none"
       >
@@ -150,7 +150,7 @@ export default function GroomBrideSection() {
         style={{
           position: "absolute",
         }}
-        className="left-[810px] md:left-[1013px] top-[1795px] md:top-[1800px] w-[160px] md:w-[184px] font-kalam text-[12px] md:text-[14px] font-normal text-[#743951] leading-relaxed select-none"
+        className="left-[810px] md:left-[1013px] top-[1725px] md:top-[1740px] w-[160px] md:w-[184px] font-kalam text-[12px] md:text-[14px] font-normal text-[#743951] leading-relaxed select-none"
       >
         Putri dari Bapak Suyitno & Ibu Pujirah
       </div>
@@ -162,7 +162,7 @@ export default function GroomBrideSection() {
         style={{
           position: "absolute",
           left: "1003px",
-          top: "1870px",
+          top: "1800px",
         }}
         className="flex items-center justify-center gap-2 px-4 py-2 bg-[#947268] text-white font-normal rounded-full border border-white/60 shadow-lg shadow-[#947268]/20 hover:bg-[#836158] hover:shadow-xl hover:shadow-[#947268]/30 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer select-none font-kalam text-[16px]"
       >

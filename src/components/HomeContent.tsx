@@ -401,7 +401,7 @@ export default function HomeContent() {
             <LoveStorySection />
 
             {/* section 2 - the groom & bride */}
-            {/* <GroomBrideSection /> */}
+            <GroomBrideSection />
 
             {/* section 3 - gallery */}
             {/* <GallerySection /> */}
