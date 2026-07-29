@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #faf9f6;
   --foreground: #171717;
   --vignette-rgb: 242, 239, 231;
-  --canvas-bg: #FAF9F6;
+  --canvas-bg: #faf9f6;
 }
 
 @theme inline {
@@ -147,7 +147,6 @@
   }
 }
 
-
 body {
   background: var(--background);
   color: var(--foreground);
@@ -177,7 +176,7 @@ body {
   .hover\:rotate-0:hover {
     transform: none !important;
   }
-  
+
   /* Prevent background color transition on touch hover */
   .hover\:bg-\[\#5c2d40\]:hover {
     background-color: #743951 !important;
@@ -201,10 +200,12 @@ body {
   .hover\:bg-red-100:hover {
     background-color: transparent !important;
   }
-  
+
   /* Reset button shadow enhancements */
   .hover\:shadow-xl:hover {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    box-shadow:
+      0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
   }
   .hover\:shadow-\[\#947268\]\/30:hover {
     box-shadow: none !important;
@@ -216,14 +217,20 @@ body {
 
 /* Keyframes for Dynamic Island Music Controller */
 @keyframes spinRecord {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes bounceBar {
-  0%, 100% { transform: scaleY(0.3); }
-  50% { transform: scaleY(1.3); }
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1.3);
+  }
 }
-
-
-

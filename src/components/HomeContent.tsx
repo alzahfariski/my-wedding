@@ -382,7 +382,7 @@ export default function HomeContent() {
   return (
     <>
       {/* ── Viewport (Camera) ───────────────────────────── */}
-      <div className="canvas-viewport">
+      <div className="canvas-viewport" style={{ backgroundColor: "var(--canvas-bg)" }}>
         <div
           className="canvas-scale-wrapper"
           style={{
@@ -430,7 +430,7 @@ export default function HomeContent() {
           {/* Header Card */}
           <div className="pointer-events-auto bg-white/70 backdrop-blur-md border border-stone-200/40 p-2 px-3 sm:p-3 sm:px-4 rounded-2xl shadow-md flex flex-col select-none max-w-[65vw]">
             <h1 className="font-alex text-xl sm:text-2xl font-bold text-[#743951] leading-none">
-              Alzha & Effri
+              Alzah & Effri
             </h1>
             <p className="text-[9px] sm:text-[11px] font-kalam text-stone-500 mt-1 uppercase tracking-wider">
               Wedding Memory Board
