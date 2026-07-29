@@ -407,7 +407,7 @@ export default function HomeContent() {
             <GallerySection />
 
             {/* section 4 - date time */}
-            {/* <DateTimeSection /> */}
+            <DateTimeSection />
 
             {/* section 5 - wedding gift */}
             {/* <WeddingGiftSection /> */}

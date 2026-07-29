@@ -53,7 +53,7 @@ export default function DateTimeSection() {
         style={{
           position: "absolute",
         }}
-        className="left-[893px] top-[494px] font-alex text-[96px] font-normal text-[#737373] leading-relaxed select-none"
+        className="left-[1413px] top-[394px] font-alex text-[96px] font-normal text-[#737373] leading-relaxed select-none"
       >
         It’s the Day!
       </div>
@@ -61,8 +61,8 @@ export default function DateTimeSection() {
       <div
         style={{
           position: "absolute",
-          left: "882px",
-          top: "626px",
+          left: "1382px",
+          top: "526px",
         }}
         className="w-[40px] h-[40px] transition-transform duration-300 hover:scale-105"
       >
@@ -81,7 +81,7 @@ export default function DateTimeSection() {
         style={{
           position: "absolute",
         }}
-        className="left-[939px]  top-[626px]  w-[476px] font-kalam text-[24px] font-normal text-[#000000] leading-relaxed select-none"
+        className="left-[1439px]  top-[526px]  w-[476px] font-kalam text-[24px] font-normal text-[#000000] leading-relaxed select-none"
       >
         JI. Poros, Rt. 015, Desa Mekar Jaya (SPG) Merangin, Jambi
       </div>
@@ -90,7 +90,7 @@ export default function DateTimeSection() {
         style={{
           position: "absolute",
         }}
-        className="left-[1249px]  top-[783px]  font-kalam text-[36px] font-normal text-[#000000] leading-relaxed select-none"
+        className="left-[1769px]  top-[646px]  font-kalam text-[36px] font-normal text-[#000000] leading-relaxed select-none"
       >
         Save The Date
       </div>
@@ -98,8 +98,8 @@ export default function DateTimeSection() {
       <div
         style={{
           position: "absolute",
-          left: "844px",
-          top: "836px",
+          left: "1244px",
+          top: "636px",
         }}
         className="w-[476px] h-[336px] transition-transform duration-300 hover:scale-105"
       >
@@ -117,11 +117,11 @@ export default function DateTimeSection() {
       <div
         style={{
           position: "absolute",
-          left: "1339px",
-          top: "867px",
+          left: "1769px",
+          top: "727px",
           width: "120px",
         }}
-        className="flex flex-col items-center gap-y-3 text-center font-kalam select-none"
+        className="flex flex-row items-center gap-x-6 text-center font-kalam select-none"
       >
         <div className="flex flex-col items-center">
           <span className="text-[36px] font-normal italic leading-[0.9] text-[#000000]">
@@ -167,10 +167,10 @@ export default function DateTimeSection() {
         rel="noopener noreferrer"
         style={{
           position: "absolute",
-          left: "926px",
-          top: "712px",
+          left: "1769px",
+          top: "842px",
         }}
-        className="flex items-center justify-center gap-2 px-4 py-2 bg-[#947268] text-white font-semibold rounded-full border border-white/60 shadow-lg shadow-[#947268]/20 hover:bg-[#836158] hover:shadow-xl hover:shadow-[#947268]/30 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer select-none font-kalam text-[16px]"
+        className="flex items-center justify-center gap-2 px-4 py-2 bg-[#947268] text-white font-semibold rounded-full border border-white/60 shadow-lg shadow-[#947268]/20 hover:bg-[#836158] hover:shadow-xl hover:shadow-[#947268]/30 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer select-none font-kalam text-[14px]"
       >
         <MapPin className="w-4 h-4" />
         <span>View the Map</span>
@@ -183,10 +183,10 @@ export default function DateTimeSection() {
         rel="noopener noreferrer"
         style={{
           position: "absolute",
-          left: "1089px",
-          top: "712px",
+          left: "1929px",
+          top: "842px",
         }}
-        className="flex items-center justify-center gap-2 px-4 py-2 bg-[#743951] text-white font-semibold rounded-full border border-white/60 shadow-lg shadow-[#743951]/20 hover:bg-[#5c2d40] hover:shadow-xl hover:shadow-[#743951]/30 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer select-none font-kalam text-[16px]"
+        className="flex items-center justify-center gap-2 px-4 py-2 bg-[#743951] text-white font-semibold rounded-full border border-white/60 shadow-lg shadow-[#743951]/20 hover:bg-[#5c2d40] hover:shadow-xl hover:shadow-[#743951]/30 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer select-none font-kalam text-[14px]"
       >
         <Calendar className="w-4 h-4" />
         <span>Add to Calendar</span>
