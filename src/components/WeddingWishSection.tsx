@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Check, Pencil, Trash2 } from "lucide-react";
+import { Check, Pencil, Trash2, Heart, AlertCircle } from "lucide-react";
 import { collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -15,65 +15,6 @@ interface Wish {
     creatorId?: string;
 }
 
-const DEFAULT_WISHES: Wish[] = [
-    {
-        id: "wish-1",
-        name: "Dimas & Sarah",
-        text: "Selamat ya Alzha & Effri! Semoga menjadi keluarga yang sakinah, mawaddah, warahmah.",
-        date: "26.07.2026",
-        color: "#fef08a",
-    },
-    {
-        id: "wish-2",
-        name: "Rian Ardiansyah",
-        text: "Lancar sampai hari H ya kawan! Semoga langgeng selamanya.",
-        date: "26.07.2026",
-        color: "#bbf7d0",
-    },
-    {
-        id: "wish-3",
-        name: "Keluarga Besar Budi",
-        text: "Happy Wedding! Barokallahu lakuma wa baroka 'alaikuma.",
-        date: "26.07.2026",
-        color: "#bfdbfe",
-    },
-    {
-        id: "wish-4",
-        name: "Amanda",
-        text: "Selamat menempuh hidup baru sahabatku tercinta!",
-        date: "26.07.2026",
-        color: "#fbcfe8",
-    },
-    {
-        id: "wish-5",
-        name: "Budi Santoso",
-        text: "Semoga cinta kalian abadi hingga akhir hayat.",
-        date: "26.07.2026",
-        color: "#fed7aa",
-    },
-    {
-        id: "wish-6",
-        name: "Siti & Mas Gun",
-        text: "Selamat melangkah ke jenjang yang baru!",
-        date: "26.07.2026",
-        color: "#fef08a",
-    },
-    {
-        id: "wish-7",
-        name: "Keluarga Iskandar",
-        text: "Doa terbaik kami menyertai kebahagiaan kalian.",
-        date: "26.07.2026",
-        color: "#bbf7d0",
-    },
-    {
-        id: "wish-8",
-        name: "Rina & Teman-teman",
-        text: "Selamat menua bersama Alzha & Effri!",
-        date: "26.07.2026",
-        color: "#bfdbfe",
-    },
-];
-
 const NOTE_COLORS = [
     { name: "Kuning Pastel", value: "#fef08a", border: "ring-yellow-300" },
     { name: "Hijau Mint", value: "#bbf7d0", border: "ring-green-300" },
@@ -84,6 +25,9 @@ const NOTE_COLORS = [
 
 export default function WeddingWishSection() {
     const [wishes, setWishes] = useState<Wish[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
     const [name, setName] = useState("");
     const [wishText, setWishText] = useState("");
     const [selectedColor, setSelectedColor] = useState("#fef08a");
@@ -104,31 +48,33 @@ export default function WeddingWishSection() {
 
     // Subscribe to wishes from Firestore
     useEffect(() => {
+        setLoading(true);
+        setError(null);
+
         const q = query(collection(db, "wishes"), orderBy("createdAt", "desc"));
         const unsubscribe = onSnapshot(
             q,
             (snapshot) => {
-                if (snapshot.empty) {
-                    setWishes(DEFAULT_WISHES);
-                } else {
-                    const list: Wish[] = [];
-                    snapshot.forEach((doc) => {
-                        const data = doc.data();
-                        list.push({
-                            id: doc.id,
-                            name: data.name,
-                            text: data.text,
-                            color: data.color,
-                            date: data.date,
-                            creatorId: data.creatorId,
-                        });
+                const list: Wish[] = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    list.push({
+                        id: doc.id,
+                        name: data.name,
+                        text: data.text,
+                        color: data.color,
+                        date: data.date,
+                        creatorId: data.creatorId,
                     });
-                    setWishes(list);
-                }
+                });
+                setWishes(list);
+                setLoading(false);
             },
-            (error) => {
-                console.error("Error fetching wishes from Firestore:", error);
-                setWishes(DEFAULT_WISHES);
+            (err) => {
+                console.error("Error fetching wishes from Firestore:", err);
+                setError("Gagal memuat ucapan. Silakan periksa koneksi internet Anda.");
+                setWishes([]);
+                setLoading(false);
             }
         );
         return () => unsubscribe();
@@ -174,8 +120,8 @@ export default function WeddingWishSection() {
             setSelectedColor("#fef08a");
 
             setTimeout(() => setSubmitted(false), 3000);
-        } catch (error) {
-            console.error("Error submitting wish:", error);
+        } catch (err) {
+            console.error("Error submitting wish:", err);
             alert("Gagal mengirim ucapan. Silakan coba lagi.");
         } finally {
             setSubmitting(false);
@@ -186,8 +132,8 @@ export default function WeddingWishSection() {
         if (!confirm("Apakah Anda yakin ingin menghapus ucapan ini?")) return;
         try {
             await deleteDoc(doc(db, "wishes", id));
-        } catch (error) {
-            console.error("Error deleting wish:", error);
+        } catch (err) {
+            console.error("Error deleting wish:", err);
             alert("Gagal menghapus ucapan.");
         }
     };
@@ -308,72 +254,89 @@ export default function WeddingWishSection() {
                 }}
                 className="grid grid-cols-4 gap-2.5"
             >
-                {activeWishes.map((wish, index) => {
-                    const rotClass = rotations[index % rotations.length];
+                {error ? (
+                    <div className="col-span-4 p-3 bg-amber-50/90 border border-amber-200/80 rounded-lg text-center font-kalam text-[#743951] flex flex-col items-center gap-1 shadow-sm">
+                        <AlertCircle className="w-4 h-4 text-amber-600" />
+                        <span className="text-[11px] font-bold">{error}</span>
+                    </div>
+                ) : loading ? (
+                    <div className="col-span-4 p-4 text-center font-kalam text-stone-400 text-xs italic">
+                        Memuat ucapan...
+                    </div>
+                ) : activeWishes.length === 0 ? (
+                    <div className="col-span-4 p-3 bg-white/70 border border-dashed border-[#743951]/30 rounded-lg text-center font-kalam text-[#743951] flex flex-col items-center gap-0.5 shadow-sm">
+                        <Heart className="w-4 h-4 text-[#743951]/60 animate-pulse" />
+                        <span className="text-[11px] font-bold">Belum Ada Ucapan</span>
+                        <p className="text-[9px] text-stone-500 italic">Jadilah yang pertama memberikan doa restu di atas! 💖</p>
+                    </div>
+                ) : (
+                    activeWishes.map((wish, index) => {
+                        const rotClass = rotations[index % rotations.length];
 
-                    return (
-                        <div
-                            key={wish.id}
-                            style={{
-                                backgroundColor: wish.color,
-                                height: "115px",
-                            }}
-                            className={`w-full ${rotClass} transition-all duration-300 hover:scale-105 hover:rotate-0 flex flex-col justify-between p-2 shadow-sm shadow-stone-850/10 border border-stone-350/5 font-kalam text-[#743951] select-none relative`}
-                        >
-                            {/* Red push-pin top center */}
-                            <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10">
-                                <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-red-400 to-red-600 border border-white/60 shadow shadow-red-950/20" />
-                                <div className="w-0.5 h-0.5 bg-stone-500 mx-auto -mt-0.5 rounded-b-sm" />
-                            </div>
-
-                            {/* Note Content */}
-                            <div className="w-full flex flex-col h-full justify-between pt-0.5">
-                                <div>
-                                    <span className="text-[10px] font-bold italic leading-none border-b border-[#743951]/10 pb-0.5 block w-full text-center truncate">
-                                        {wish.name}
-                                    </span>
-                                    <p className="text-[9px] font-normal leading-tight mt-1 text-stone-850 max-h-[55px] overflow-y-auto scrollbar-hide text-left italic pr-0.5">
-                                        "{wish.text}"
-                                    </p>
+                        return (
+                            <div
+                                key={wish.id}
+                                style={{
+                                    backgroundColor: wish.color,
+                                    height: "115px",
+                                }}
+                                className={`w-full ${rotClass} transition-all duration-300 hover:scale-105 hover:rotate-0 flex flex-col justify-between p-2 shadow-sm shadow-stone-850/10 border border-stone-350/5 font-kalam text-[#743951] select-none relative`}
+                            >
+                                {/* Red push-pin top center */}
+                                <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-red-400 to-red-600 border border-white/60 shadow shadow-red-950/20" />
+                                    <div className="w-0.5 h-0.5 bg-stone-500 mx-auto -mt-0.5 rounded-b-sm" />
                                 </div>
-                                <div className="flex justify-between items-center mt-0.5 pt-0.5 border-t border-[#743951]/5">
-                                    <div className="flex gap-1 z-20">
-                                        {wish.creatorId === userId && (
-                                            <>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setEditingWishId(wish.id);
-                                                        setName(wish.name);
-                                                        setWishText(wish.text);
-                                                        setSelectedColor(wish.color);
-                                                    }}
-                                                    className="p-0.5 hover:bg-[#743951]/15 rounded text-[#743951] cursor-pointer transition-colors"
-                                                    title="Edit ucapan"
-                                                >
-                                                    <Pencil className="w-2.5 h-2.5" />
-                                                </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDeleteWish(wish.id);
-                                                    }}
-                                                    className="p-0.5 hover:bg-red-105 rounded text-red-600 cursor-pointer transition-colors"
-                                                    title="Hapus ucapan"
-                                                >
-                                                    <Trash2 className="w-2.5 h-2.5" />
-                                                </button>
-                                            </>
-                                        )}
+
+                                {/* Note Content */}
+                                <div className="w-full flex flex-col h-full justify-between pt-0.5">
+                                    <div>
+                                        <span className="text-[10px] font-bold italic leading-none border-b border-[#743951]/10 pb-0.5 block w-full text-center truncate">
+                                            {wish.name}
+                                        </span>
+                                        <p className="text-[9px] font-normal leading-tight mt-1 text-stone-850 max-h-[55px] overflow-y-auto scrollbar-hide text-left italic pr-0.5">
+                                            "{wish.text}"
+                                        </p>
                                     </div>
-                                    <span className="text-[7px] font-semibold text-stone-500/80 text-right font-sans">
-                                        {wish.date}
-                                    </span>
+                                    <div className="flex justify-between items-center mt-0.5 pt-0.5 border-t border-[#743951]/5">
+                                        <div className="flex gap-1 z-20">
+                                            {wish.creatorId === userId && (
+                                                <>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setEditingWishId(wish.id);
+                                                            setName(wish.name);
+                                                            setWishText(wish.text);
+                                                            setSelectedColor(wish.color);
+                                                        }}
+                                                        className="p-0.5 hover:bg-[#743951]/15 rounded text-[#743951] cursor-pointer transition-colors"
+                                                        title="Edit ucapan"
+                                                    >
+                                                        <Pencil className="w-2.5 h-2.5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDeleteWish(wish.id);
+                                                        }}
+                                                        className="p-0.5 hover:bg-red-105 rounded text-red-600 cursor-pointer transition-colors"
+                                                        title="Hapus ucapan"
+                                                    >
+                                                        <Trash2 className="w-2.5 h-2.5" />
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                        <span className="text-[7px] font-semibold text-stone-500/80 text-right font-sans">
+                                            {wish.date}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })
+                )}
             </div>
 
             {/* View All Wishes Link Button (Navigates to /wishes page) */}

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Camera, Upload, Check, RefreshCw, Pencil, Trash2, X } from "lucide-react";
+import { ArrowLeft, Camera, Upload, Check, RefreshCw, Pencil, Trash2, X, CameraOff, AlertCircle } from "lucide-react";
 import {
   collection,
   query,
@@ -28,39 +28,11 @@ interface PinnedPhoto {
   creatorId?: string;
 }
 
-const DEFAULT_PHOTOS: PinnedPhoto[] = [
-  {
-    id: "photo-1",
-    guestName: "Alza & Keluarga",
-    imageSrc: "/assets/images/img_1.png",
-    caption: "Abadikan momen bahagia!",
-    date: "26.07.2026",
-  },
-  {
-    id: "photo-2",
-    guestName: "Rian Ardiansyah",
-    imageSrc: "/assets/images/img_2.png",
-    caption: "Kondangan vibes!",
-    date: "26.07.2026",
-  },
-  {
-    id: "photo-3",
-    guestName: "Keluarga Sukardi",
-    imageSrc: "/assets/images/img_3.png",
-    caption: "Samawa ya!",
-    date: "26.07.2026",
-  },
-  {
-    id: "photo-4",
-    guestName: "Amanda & Friends",
-    imageSrc: "/assets/images/img_4.png",
-    caption: "Best day ever!",
-    date: "26.07.2026",
-  },
-];
-
 export default function PhotosPage() {
   const [photos, setPhotos] = useState<PinnedPhoto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [userId, setUserId] = useState("");
   const [selectedPhoto, setSelectedPhoto] = useState<PinnedPhoto | null>(null);
 
@@ -92,32 +64,34 @@ export default function PhotosPage() {
 
   // Subscribe to photos from Firestore
   useEffect(() => {
+    setLoading(true);
+    setError(null);
+
     const q = query(collection(db, "photos"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        if (snapshot.empty) {
-          setPhotos(DEFAULT_PHOTOS);
-        } else {
-          const list: PinnedPhoto[] = [];
-          snapshot.forEach((doc) => {
-            const data = doc.data();
-            list.push({
-              id: doc.id,
-              guestName: data.guestName,
-              imageSrc: data.imageSrc,
-              fileId: data.fileId,
-              caption: data.caption,
-              date: data.date,
-              creatorId: data.creatorId,
-            });
+        const list: PinnedPhoto[] = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          list.push({
+            id: doc.id,
+            guestName: data.guestName,
+            imageSrc: data.imageSrc,
+            fileId: data.fileId,
+            caption: data.caption,
+            date: data.date,
+            creatorId: data.creatorId,
           });
-          setPhotos(list);
-        }
+        });
+        setPhotos(list);
+        setLoading(false);
       },
-      (error) => {
-        console.error("Error fetching photos from Firestore:", error);
-        setPhotos(DEFAULT_PHOTOS);
+      (err) => {
+        console.error("Error fetching photos from Firestore:", err);
+        setError("Gagal memuat foto. Silakan periksa koneksi internet Anda.");
+        setPhotos([]);
+        setLoading(false);
       }
     );
     return () => unsubscribe();
@@ -223,9 +197,9 @@ export default function PhotosPage() {
       setIsFormOpen(false);
 
       setTimeout(() => setSubmitted(false), 3000);
-    } catch (error: any) {
-      console.error("Error submitting photo:", error);
-      alert(error.message || "Gagal menempelkan foto. Silakan coba lagi.");
+    } catch (err: any) {
+      console.error("Error submitting photo:", err);
+      alert(err.message || "Gagal menempelkan foto. Silakan coba lagi.");
     } finally {
       setSubmitting(false);
     }
@@ -238,8 +212,8 @@ export default function PhotosPage() {
       if (fileId) {
         await deleteFromDrive(fileId);
       }
-    } catch (error) {
-      console.error("Error deleting photo:", error);
+    } catch (err) {
+      console.error("Error deleting photo:", err);
       alert("Gagal menghapus foto.");
     }
   };
@@ -398,8 +372,8 @@ export default function PhotosPage() {
                     ? "Menyimpan..."
                     : "Mengunggah..."
                   : editingPhotoId
-                    ? "Simpan Perubahan"
-                    : "Tempel Foto"}
+                  ? "Simpan Perubahan"
+                  : "Tempel Foto"}
               </button>
 
               {editingPhotoId && (
@@ -423,77 +397,104 @@ export default function PhotosPage() {
         </div>
       )}
 
-      {/* Grid of Polaroid Photo Cards */}
-      <div className="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-        {photos.map((photo, index) => {
-          const rotClass = rotations[index % rotations.length];
-          return (
-            <div
-              key={photo.id}
-              onClick={() => setSelectedPhoto(photo)}
-              className={`w-full ${rotClass} bg-[#fafaf9] rounded shadow-md border border-stone-200 p-2.5 flex flex-col items-center transition-all duration-300 hover:scale-105 hover:rotate-0 select-none relative cursor-pointer group`}
-            >
-              {/* Tape decoration on top */}
-              <div className="absolute -top-2 w-8 h-2.5 bg-amber-100/60 rotate-[-8deg] rounded-sm shadow-sm z-10" />
+      {/* Grid Display or States */}
+      {error ? (
+        <div className="max-w-xl mx-auto my-12 p-6 bg-amber-50 border border-amber-200 rounded-2xl text-center flex flex-col items-center gap-3 shadow-md">
+          <AlertCircle className="w-8 h-8 text-amber-600" />
+          <span className="text-base font-bold text-amber-800">{error}</span>
+          <p className="text-xs text-amber-700">Pastikan koneksi internet terhubung dan silakan muat ulang halaman.</p>
+        </div>
+      ) : loading ? (
+        <div className="max-w-xl mx-auto my-16 text-center text-stone-500 font-kalam text-lg animate-pulse">
+          Memuat galeri foto memory...
+        </div>
+      ) : photos.length === 0 ? (
+        <div className="max-w-md mx-auto my-12 p-8 bg-white/80 border-2 border-dashed border-[#743951]/30 rounded-3xl text-center flex flex-col items-center gap-3 shadow-lg">
+          <CameraOff className="w-10 h-10 text-[#743951]/60" />
+          <h3 className="text-xl font-bold text-[#743951]">Belum Ada Foto</h3>
+          <p className="text-xs text-stone-600 italic leading-relaxed">
+            Jadilah yang pertama membagikan momen bahagia di galeri foto pernikahan ini!
+          </p>
+          <button
+            type="button"
+            onClick={() => setIsFormOpen(true)}
+            className="mt-2 px-6 py-2 bg-[#743951] hover:bg-[#5c2d40] text-white font-bold text-xs rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer"
+          >
+            Unggah Foto Sekarang
+          </button>
+        </div>
+      ) : (
+        <div className="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+          {photos.map((photo, index) => {
+            const rotClass = rotations[index % rotations.length];
+            return (
+              <div
+                key={photo.id}
+                onClick={() => setSelectedPhoto(photo)}
+                className={`w-full ${rotClass} bg-[#fafaf9] rounded shadow-md border border-stone-200 p-2.5 flex flex-col items-center transition-all duration-300 hover:scale-105 hover:rotate-0 select-none relative cursor-pointer group`}
+              >
+                {/* Tape decoration on top */}
+                <div className="absolute -top-2 w-8 h-2.5 bg-amber-100/60 rotate-[-8deg] rounded-sm shadow-sm z-10" />
 
-              {/* Polaroid Image */}
-              <div className="relative w-full aspect-square bg-stone-100 border border-stone-200/50 rounded-sm overflow-hidden">
-                <Image
-                  src={photo.imageSrc}
-                  alt={photo.guestName}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  unoptimized
-                />
-              </div>
+                {/* Polaroid Image */}
+                <div className="relative w-full aspect-square bg-stone-100 border border-stone-200/50 rounded-sm overflow-hidden">
+                  <Image
+                    src={photo.imageSrc}
+                    alt={photo.guestName}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    unoptimized
+                  />
+                </div>
 
-              {/* Polaroid Footer */}
-              <div className="w-full flex flex-col mt-2 font-kalam text-center leading-tight gap-y-0.5">
-                <span className="text-xs font-bold text-[#743951] truncate">
-                  {photo.guestName}
-                </span>
-                <span className="text-[10px] text-stone-600 truncate italic">
-                  "{photo.caption}"
-                </span>
-                <div className="flex justify-between items-center mt-1 pt-1 border-t border-stone-200/60">
-                  <div className="flex gap-1 z-20">
-                    {photo.creatorId === userId && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleStartEdit(photo);
-                          }}
-                          className="p-1 hover:bg-[#743951]/15 rounded text-[#743951] cursor-pointer transition-colors"
-                          title="Edit foto"
-                        >
-                          <Pencil className="w-3 h-3" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeletePhoto(photo.id, photo.fileId);
-                          }}
-                          className="p-1 hover:bg-red-100 rounded text-red-600 cursor-pointer transition-colors"
-                          title="Hapus foto"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </>
-                    )}
-                  </div>
-
-                  <span className="text-[8px] text-stone-400 font-sans font-semibold ml-auto">
-                    {photo.date}
+                {/* Polaroid Footer */}
+                <div className="w-full flex flex-col mt-2 font-kalam text-center leading-tight gap-y-0.5">
+                  <span className="text-xs font-bold text-[#743951] truncate">
+                    {photo.guestName}
                   </span>
+                  <span className="text-[10px] text-stone-600 truncate italic">
+                    "{photo.caption}"
+                  </span>
+                  <div className="flex justify-between items-center mt-1 pt-1 border-t border-stone-200/60">
+                    <div className="flex gap-1 z-20">
+                      {photo.creatorId === userId && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStartEdit(photo);
+                            }}
+                            className="p-1 hover:bg-[#743951]/15 rounded text-[#743951] cursor-pointer transition-colors"
+                            title="Edit foto"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeletePhoto(photo.id, photo.fileId);
+                            }}
+                            className="p-1 hover:bg-red-100 rounded text-red-600 cursor-pointer transition-colors"
+                            title="Hapus foto"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+
+                    <span className="text-[8px] text-stone-400 font-sans font-semibold ml-auto">
+                      {photo.date}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Lightbox Photo Preview Overlay */}
       {selectedPhoto && (

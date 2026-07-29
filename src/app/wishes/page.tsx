@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Pencil, Trash2, Check, Plus, Heart } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, Check, Plus, Heart, AlertCircle } from "lucide-react";
 import {
   collection,
   query,
@@ -25,37 +25,6 @@ interface Wish {
   creatorId?: string;
 }
 
-const DEFAULT_WISHES: Wish[] = [
-  {
-    id: "wish-1",
-    name: "Dimas & Sarah",
-    text: "Selamat ya Alzha & Effri! Semoga menjadi keluarga yang sakinah, mawaddah, warahmah.",
-    date: "26.07.2026",
-    color: "#fef08a",
-  },
-  {
-    id: "wish-2",
-    name: "Rian Ardiansyah",
-    text: "Lancar sampai hari H ya kawan! Semoga langgeng selamanya.",
-    date: "26.07.2026",
-    color: "#bbf7d0",
-  },
-  {
-    id: "wish-3",
-    name: "Keluarga Besar Budi",
-    text: "Happy Wedding! Barokallahu lakuma wa baroka 'alaikuma.",
-    date: "26.07.2026",
-    color: "#bfdbfe",
-  },
-  {
-    id: "wish-4",
-    name: "Amanda",
-    text: "Selamat menempuh hidup baru sahabatku tercinta!",
-    date: "26.07.2026",
-    color: "#fbcfe8",
-  },
-];
-
 const NOTE_COLORS = [
   { name: "Kuning Pastel", value: "#fef08a" },
   { name: "Hijau Mint", value: "#bbf7d0" },
@@ -66,6 +35,8 @@ const NOTE_COLORS = [
 
 export default function WishesPage() {
   const [wishes, setWishes] = useState<Wish[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string>("");
 
   // Form state
@@ -92,31 +63,33 @@ export default function WishesPage() {
 
   // Subscribe to wishes from Firestore
   useEffect(() => {
+    setLoading(true);
+    setError(null);
+
     const q = query(collection(db, "wishes"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        if (snapshot.empty) {
-          setWishes(DEFAULT_WISHES);
-        } else {
-          const list: Wish[] = [];
-          snapshot.forEach((doc) => {
-            const data = doc.data();
-            list.push({
-              id: doc.id,
-              name: data.name,
-              text: data.text,
-              color: data.color,
-              date: data.date,
-              creatorId: data.creatorId,
-            });
+        const list: Wish[] = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          list.push({
+            id: doc.id,
+            name: data.name,
+            text: data.text,
+            color: data.color,
+            date: data.date,
+            creatorId: data.creatorId,
           });
-          setWishes(list);
-        }
+        });
+        setWishes(list);
+        setLoading(false);
       },
-      (error) => {
-        console.error("Error fetching wishes from Firestore:", error);
-        setWishes(DEFAULT_WISHES);
+      (err) => {
+        console.error("Error fetching wishes from Firestore:", err);
+        setError("Gagal memuat ucapan. Silakan periksa koneksi internet Anda.");
+        setWishes([]);
+        setLoading(false);
       }
     );
     return () => unsubscribe();
@@ -163,8 +136,8 @@ export default function WishesPage() {
       setIsFormOpen(false);
 
       setTimeout(() => setSubmitted(false), 3000);
-    } catch (error) {
-      console.error("Error submitting wish:", error);
+    } catch (err) {
+      console.error("Error submitting wish:", err);
       alert("Gagal mengirim ucapan. Silakan coba lagi.");
     } finally {
       setSubmitting(false);
@@ -175,8 +148,8 @@ export default function WishesPage() {
     if (!confirm("Apakah Anda yakin ingin menghapus ucapan ini?")) return;
     try {
       await deleteDoc(doc(db, "wishes", id));
-    } catch (error) {
-      console.error("Error deleting wish:", error);
+    } catch (err) {
+      console.error("Error deleting wish:", err);
       alert("Gagal menghapus ucapan.");
     }
   };
@@ -286,10 +259,11 @@ export default function WishesPage() {
                     type="button"
                     onClick={() => setSelectedColor(color.value)}
                     style={{ backgroundColor: color.value }}
-                    className={`w-7 h-7 rounded-full cursor-pointer transition-transform hover:scale-110 shadow-sm border border-stone-300 ${selectedColor === color.value
+                    className={`w-7 h-7 rounded-full cursor-pointer transition-transform hover:scale-110 shadow-sm border border-stone-300 ${
+                      selectedColor === color.value
                         ? "ring-2 ring-offset-2 ring-[#743951] scale-110"
                         : ""
-                      }`}
+                    }`}
                     title={color.name}
                   />
                 ))}
@@ -307,8 +281,8 @@ export default function WishesPage() {
                     ? "Menyimpan..."
                     : "Memasang..."
                   : editingWishId
-                    ? "Simpan Perubahan"
-                    : "Pasang Ucapan"}
+                  ? "Simpan Perubahan"
+                  : "Pasang Ucapan"}
               </button>
 
               {editingWishId && (
@@ -331,69 +305,96 @@ export default function WishesPage() {
         </div>
       )}
 
-      {/* Grid Display of All Wishes */}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {wishes.map((wish, index) => {
-          const rotClass = rotations[index % rotations.length];
-          return (
-            <div
-              key={wish.id}
-              style={{
-                backgroundColor: wish.color,
-                minHeight: "160px",
-              }}
-              className={`w-full ${rotClass} transition-all duration-300 hover:scale-105 hover:rotate-0 flex flex-col justify-between p-4 shadow-md rounded-sm border border-stone-300/40 relative`}
-            >
-              {/* Red push-pin top center */}
-              <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 z-10">
-                <div className="w-3.5 h-3.5 rounded-full bg-gradient-to-br from-red-400 to-red-600 border border-white/60 shadow" />
-                <div className="w-0.5 h-1 bg-stone-500 mx-auto -mt-0.5 rounded-b-sm" />
-              </div>
-
-              {/* Wish Note Content */}
-              <div className="w-full flex flex-col h-full justify-between pt-1">
-                <div>
-                  <span className="text-sm font-bold italic leading-none border-b border-[#743951]/15 pb-1 block w-full text-center truncate">
-                    {wish.name}
-                  </span>
-                  <p className="text-xs font-normal leading-relaxed mt-2.5 text-stone-850 italic text-left max-h-[100px] overflow-y-auto scrollbar-thin">
-                    "{wish.text}"
-                  </p>
+      {/* Grid Display or States */}
+      {error ? (
+        <div className="max-w-xl mx-auto my-12 p-6 bg-amber-50 border border-amber-200 rounded-2xl text-center flex flex-col items-center gap-3 shadow-md">
+          <AlertCircle className="w-8 h-8 text-amber-600" />
+          <span className="text-base font-bold text-amber-800">{error}</span>
+          <p className="text-xs text-amber-700">Pastikan koneksi internet terhubung dan silakan muat ulang halaman.</p>
+        </div>
+      ) : loading ? (
+        <div className="max-w-xl mx-auto my-16 text-center text-stone-500 font-kalam text-lg animate-pulse">
+          Memuat ucapan pernikahan...
+        </div>
+      ) : wishes.length === 0 ? (
+        <div className="max-w-md mx-auto my-12 p-8 bg-white/80 border-2 border-dashed border-[#743951]/30 rounded-3xl text-center flex flex-col items-center gap-3 shadow-lg">
+          <Heart className="w-10 h-10 text-[#743951]/60 animate-bounce" />
+          <h3 className="text-xl font-bold text-[#743951]">Belum Ada Ucapan</h3>
+          <p className="text-xs text-stone-600 italic leading-relaxed">
+            Jadilah orang pertama yang mengirimkan ucapan doa restu untuk kebahagiaan Alzha & Effri!
+          </p>
+          <button
+            type="button"
+            onClick={() => setIsFormOpen(true)}
+            className="mt-2 px-6 py-2 bg-[#743951] hover:bg-[#5c2d40] text-white font-bold text-xs rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer"
+          >
+            Tulis Ucapan Sekarang
+          </button>
+        </div>
+      ) : (
+        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {wishes.map((wish, index) => {
+            const rotClass = rotations[index % rotations.length];
+            return (
+              <div
+                key={wish.id}
+                style={{
+                  backgroundColor: wish.color,
+                  minHeight: "160px",
+                }}
+                className={`w-full ${rotClass} transition-all duration-300 hover:scale-105 hover:rotate-0 flex flex-col justify-between p-4 shadow-md rounded-sm border border-stone-300/40 relative`}
+              >
+                {/* Red push-pin top center */}
+                <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 z-10">
+                  <div className="w-3.5 h-3.5 rounded-full bg-gradient-to-br from-red-400 to-red-600 border border-white/60 shadow" />
+                  <div className="w-0.5 h-1 bg-stone-500 mx-auto -mt-0.5 rounded-b-sm" />
                 </div>
 
-                <div className="flex justify-between items-center mt-3 pt-1.5 border-t border-[#743951]/10">
-                  <div className="flex gap-1.5">
-                    {wish.creatorId === userId && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => handleStartEdit(wish)}
-                          className="p-1 hover:bg-[#743951]/15 rounded text-[#743951] cursor-pointer transition-colors"
-                          title="Edit ucapan"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteWish(wish.id)}
-                          className="p-1 hover:bg-red-100 rounded text-red-600 cursor-pointer transition-colors"
-                          title="Hapus ucapan"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </>
-                    )}
+                {/* Wish Note Content */}
+                <div className="w-full flex flex-col h-full justify-between pt-1">
+                  <div>
+                    <span className="text-sm font-bold italic leading-none border-b border-[#743951]/15 pb-1 block w-full text-center truncate">
+                      {wish.name}
+                    </span>
+                    <p className="text-xs font-normal leading-relaxed mt-2.5 text-stone-850 italic text-left max-h-[100px] overflow-y-auto scrollbar-thin">
+                      "{wish.text}"
+                    </p>
                   </div>
 
-                  <span className="text-[10px] font-semibold text-stone-500 font-sans">
-                    {wish.date}
-                  </span>
+                  <div className="flex justify-between items-center mt-3 pt-1.5 border-t border-[#743951]/10">
+                    <div className="flex gap-1.5">
+                      {wish.creatorId === userId && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleStartEdit(wish)}
+                            className="p-1 hover:bg-[#743951]/15 rounded text-[#743951] cursor-pointer transition-colors"
+                            title="Edit ucapan"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteWish(wish.id)}
+                            className="p-1 hover:bg-red-100 rounded text-red-600 cursor-pointer transition-colors"
+                            title="Hapus ucapan"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+
+                    <span className="text-[10px] font-semibold text-stone-500 font-sans">
+                      {wish.date}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </main>
   );
 }
