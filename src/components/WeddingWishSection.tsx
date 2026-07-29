@@ -265,9 +265,9 @@ export default function WeddingWishSection() {
                     </div>
                 ) : activeWishes.length === 0 ? (
                     <div className="col-span-4 p-3 bg-white/70 border border-dashed border-[#743951]/30 rounded-lg text-center font-kalam text-[#743951] flex flex-col items-center gap-0.5 shadow-sm">
-                        <Heart className="w-4 h-4 text-[#743951]/60 animate-pulse" />
+
                         <span className="text-[11px] font-bold">Belum Ada Ucapan</span>
-                        <p className="text-[9px] text-stone-500 italic">Jadilah yang pertama memberikan doa restu di atas! 💖</p>
+                        <p className="text-[9px] text-stone-500 italic">Jadilah yang pertama memberikan doa restu di atas!</p>
                     </div>
                 ) : (
                     activeWishes.map((wish, index) => {

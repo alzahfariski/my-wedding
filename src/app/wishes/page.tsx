@@ -259,11 +259,10 @@ export default function WishesPage() {
                     type="button"
                     onClick={() => setSelectedColor(color.value)}
                     style={{ backgroundColor: color.value }}
-                    className={`w-7 h-7 rounded-full cursor-pointer transition-transform hover:scale-110 shadow-sm border border-stone-300 ${
-                      selectedColor === color.value
-                        ? "ring-2 ring-offset-2 ring-[#743951] scale-110"
-                        : ""
-                    }`}
+                    className={`w-7 h-7 rounded-full cursor-pointer transition-transform hover:scale-110 shadow-sm border border-stone-300 ${selectedColor === color.value
+                      ? "ring-2 ring-offset-2 ring-[#743951] scale-110"
+                      : ""
+                      }`}
                     title={color.name}
                   />
                 ))}
@@ -281,8 +280,8 @@ export default function WishesPage() {
                     ? "Menyimpan..."
                     : "Memasang..."
                   : editingWishId
-                  ? "Simpan Perubahan"
-                  : "Pasang Ucapan"}
+                    ? "Simpan Perubahan"
+                    : "Pasang Ucapan"}
               </button>
 
               {editingWishId && (
@@ -318,10 +317,10 @@ export default function WishesPage() {
         </div>
       ) : wishes.length === 0 ? (
         <div className="max-w-md mx-auto my-12 p-8 bg-white/80 border-2 border-dashed border-[#743951]/30 rounded-3xl text-center flex flex-col items-center gap-3 shadow-lg">
-          <Heart className="w-10 h-10 text-[#743951]/60 animate-bounce" />
+
           <h3 className="text-xl font-bold text-[#743951]">Belum Ada Ucapan</h3>
           <p className="text-xs text-stone-600 italic leading-relaxed">
-            Jadilah orang pertama yang mengirimkan ucapan doa restu untuk kebahagiaan Alzha & Effri!
+            Jadilah orang pertama yang mengirimkan ucapan doa restu untuk kebahagiaan Alzah & Effri!
           </p>
           <button
             type="button"

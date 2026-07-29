@@ -348,7 +348,7 @@ export default function PhotoBoothSection() {
                     <div className="col-span-4 p-3 bg-white/70 border border-dashed border-[#743951]/30 rounded-lg text-center font-kalam text-[#743951] flex flex-col items-center gap-0.5 shadow-sm">
                         <CameraOff className="w-4 h-4 text-[#743951]/60" />
                         <span className="text-[11px] font-bold">Belum Ada Foto</span>
-                        <p className="text-[9px] text-stone-500 italic">Bagikan foto momen bahagiamu di atas! 📸</p>
+                        <p className="text-[9px] text-stone-500 italic">Bagikan foto momen bahagiamu di atas!</p>
                     </div>
                 ) : (
                     activePhotos.map((photo, index) => {
