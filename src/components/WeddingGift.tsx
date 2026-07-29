@@ -38,7 +38,7 @@ export default function WeddingGiftSection() {
                 style={{
                     position: "absolute",
                 }}
-                className="left-[1601px] top-[524px] font-alex text-[48px] font-normal text-[#737373] leading-relaxed select-none"
+                className="left-[2401px] top-[524px] font-alex text-[48px] font-normal text-[#737373] leading-relaxed select-none"
             >
                 Wedding Gift
             </div>
@@ -47,7 +47,7 @@ export default function WeddingGiftSection() {
                 style={{
                     position: "absolute",
                 }}
-                className="left-[1602px] top-[600px] w-[470px] font-kalam text-[12px] font-normal text-stone-600 leading-relaxed select-none"
+                className="left-[2402px] top-[600px] w-[470px] font-kalam text-[12px] font-normal text-stone-600 leading-relaxed select-none"
             >
                 our blessing and coming to our wedding are enough for us. However, if you want to give a gift we provide a Digital Envelope to make it easier for you. thank you
             </div>
@@ -57,7 +57,7 @@ export default function WeddingGiftSection() {
                 style={{
                     position: "absolute",
                 }}
-                className="left-[1596px] top-[652px] font-kalam text-[16px] font-normal italic text-[#743951] leading-relaxed select-none"
+                className="left-[2396px] top-[672px] font-kalam text-[16px] font-normal italic text-[#743951] leading-relaxed select-none"
             >
                 a.n Effri Dwiyana Saputri
             </div>
@@ -66,8 +66,8 @@ export default function WeddingGiftSection() {
             <div
                 style={{
                     position: "absolute",
-                    left: "1590px",
-                    top: "678px",
+                    left: "2390px",
+                    top: "708px",
                 }}
                 className="w-[280px] h-[72px] transition-transform duration-300 hover:scale-105 flex items-center relative"
             >
@@ -112,7 +112,7 @@ export default function WeddingGiftSection() {
                 style={{
                     position: "absolute",
                 }}
-                className="left-[1596px] top-[782px] font-kalam text-[16px] font-normal italic text-[#743951] leading-relaxed select-none"
+                className="left-[2390px] top-[812px] font-kalam text-[16px] font-normal italic text-[#743951] leading-relaxed select-none"
             >
                 a.n Alzah Fariski
             </div>
@@ -121,8 +121,8 @@ export default function WeddingGiftSection() {
             <div
                 style={{
                     position: "absolute",
-                    left: "1590px",
-                    top: "808px",
+                    left: "2390px",
+                    top: "848px",
                 }}
                 className="w-[280px] h-[72px] transition-transform duration-300 hover:scale-105 flex items-center relative"
             >
@@ -166,8 +166,8 @@ export default function WeddingGiftSection() {
             <div
                 style={{
                     position: "absolute",
-                    left: "1900px",
-                    top: "646px",
+                    left: "2720px",
+                    top: "666px",
                 }}
                 className="w-[168px] h-[197px] transition-transform duration-300 hover:scale-105 flex flex-col items-center justify-center relative p-6 text-center select-none"
             >
@@ -214,7 +214,7 @@ export default function WeddingGiftSection() {
             <div
                 style={{
                     position: "absolute",
-                    left: "1996px",
+                    left: "2840px",
                     top: "802px",
                 }}
                 className="w-[214px] h-[214px] transition-transform duration-300 hover:scale-105"
@@ -234,8 +234,8 @@ export default function WeddingGiftSection() {
             <div
                 style={{
                     position: "absolute",
-                    left: "1570px",
-                    top: "880px",
+                    left: "2360px",
+                    top: "940px",
                     width: "550px",
                 }}
                 className="p-6 font-kalam text-[#743951] select-none"

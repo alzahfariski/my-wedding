@@ -410,7 +410,7 @@ export default function HomeContent() {
             <DateTimeSection />
 
             {/* section 5 - wedding gift */}
-            {/* <WeddingGiftSection /> */}
+            <WeddingGiftSection />
 
             {/* section 6 - Wedding Wish */}
             {/* <WeddingWishSection /> */}
