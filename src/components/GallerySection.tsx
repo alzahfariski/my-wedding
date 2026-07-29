@@ -21,12 +21,12 @@ export default function GallerySection({ isMobile = false }: GallerySectionProps
 
   if (isMobile) {
     const galleryItems = [
-      { src: "/assets/gallery/gallery_1.png", alt: "Gallery 1", aspect: "aspect-[4/3]" },
-      { src: "/assets/gallery/gallery_2.png", alt: "Gallery 2", aspect: "aspect-[3/4]" },
-      { src: "/assets/gallery/gallery_3.png", alt: "Gallery 3", aspect: "aspect-[4/3]" },
-      { src: "/assets/gallery/gallery_4.png", alt: "Gallery 4", aspect: "aspect-[3/4]" },
-      { src: "/assets/gallery/gallery_5.png", alt: "Gallery 5", aspect: "aspect-square" },
-      { src: "/assets/gallery/gallery_6.png", alt: "Gallery 6", aspect: "aspect-[16/9]" },
+      { src: "/assets/gallery/gallery_6.png", alt: "Gallery 6", span: "col-span-2 row-span-1" },
+      { src: "/assets/gallery/gallery_5.png", alt: "Gallery 5", span: "col-span-2 row-span-2" },
+      { src: "/assets/gallery/gallery_4.png", alt: "Gallery 4", span: "col-span-2 row-span-2" },
+      { src: "/assets/gallery/gallery_3.png", alt: "Gallery 3", span: "col-span-2 row-span-1" },
+      { src: "/assets/gallery/gallery_1.png", alt: "Gallery 1", span: "col-span-3 row-span-1" },
+      { src: "/assets/gallery/gallery_2.png", alt: "Gallery 2", span: "col-span-1 row-span-1" },
     ];
 
     return (
@@ -35,33 +35,36 @@ export default function GallerySection({ isMobile = false }: GallerySectionProps
           Our Gallery
         </h2>
 
-        <div className="w-full max-w-sm grid grid-cols-2 gap-3 relative z-10">
-          {galleryItems.map((item, idx) => (
-            <div
-              key={idx}
-              onClick={() => handleOpenLightbox(idx)}
-              className={`relative w-full ${item.aspect} rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform`}
-            >
-              <Image
-                src={item.src}
-                alt={item.alt}
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            </div>
-          ))}
-        </div>
+        <div className="relative w-full max-w-sm">
+          {/* Bento Grid System (Grid 4 Kolom x 5 Baris) */}
+          <div className="w-full grid grid-cols-4 grid-rows-5 gap-2.5 h-[520px] sm:h-[600px] relative z-10">
+            {galleryItems.map((item, idx) => (
+              <div
+                key={idx}
+                onClick={() => handleOpenLightbox(idx)}
+                className={`relative w-full h-full ${item.span} overflow-hidden cursor-pointer active:scale-95 transition-all duration-300`}
+              >
+                <Image
+                  src={item.src}
+                  alt={item.alt}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              </div>
+            ))}
+          </div>
 
-        {/* Balloon Decorative Element */}
-        <div className="relative w-[140px] h-[140px] mt-4 select-none self-end mr-4">
-          <Image
-            src="/assets/images/img_6.png"
-            alt="baloon"
-            fill
-            className="object-cover"
-            unoptimized
-          />
+          {/* Balloon Decorative Element */}
+          <div className="absolute top-[45%] -left-12 w-[110px] sm:w-[130px] aspect-square z-20 pointer-events-none select-none">
+            <Image
+              src="/assets/images/img_6.png"
+              alt="baloon"
+              fill
+              className="object-contain"
+              unoptimized
+            />
+          </div>
         </div>
 
         <GalleryDetailModal
