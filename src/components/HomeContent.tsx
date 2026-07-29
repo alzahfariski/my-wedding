@@ -73,7 +73,12 @@ export default function HomeContent() {
 
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [isMusicHovered, setIsMusicHovered] = useState(false);
-  const [isMobileDevice, setIsMobileDevice] = useState(false);
+  const [isMobileDevice, setIsMobileDevice] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
 
   // Toggle music playback
   const toggleMusic = useCallback(() => {
@@ -109,7 +114,11 @@ export default function HomeContent() {
   // Update mobile detection state on mount and resize
   useEffect(() => {
     const handleCheckMobile = () => {
-      setIsMobileDevice(window.innerWidth < 768);
+      const isMobile = window.innerWidth < 768;
+      setIsMobileDevice(isMobile);
+      if (isMobile) {
+        ScrollTrigger.getAll().forEach((st) => st.kill());
+      }
     };
     handleCheckMobile();
     window.addEventListener("resize", handleCheckMobile);
@@ -402,7 +411,7 @@ export default function HomeContent() {
     <>
       {/* ── Mobile Layout: Normal Vertical Scroll ───────────── */}
       {isMobileDevice ? (
-        <div className="w-full min-h-screen bg-[#faf9f6] bg-cover bg-fixed pt-16 pb-24 px-3 flex flex-col items-center gap-10 overflow-y-auto">
+        <div className="w-full min-h-screen bg-[#faf9f6] bg-cover bg-fixed pt-16 pb-16 px-3 flex flex-col items-center gap-16 sm:gap-20">
           {/* section 1 - love story */}
           <LoveStorySection isMobile={true} />
 
@@ -478,8 +487,8 @@ export default function HomeContent() {
 
       {/* ── Fixed HUD UI Controls Layer ──────────────────── */}
       <div className="fixed inset-0 z-50 pointer-events-none flex flex-col justify-between p-2.5 sm:p-4 md:p-6 text-stone-800">
-        {/* Top HUD Row */}
-        <div className="w-full flex items-start justify-between">
+        {/* Top HUD Row: Header Left, Music Controller Right */}
+        <div className="w-full flex items-center justify-between">
           {/* Header Card */}
           <div className="pointer-events-auto bg-white/75 backdrop-blur-md border border-stone-200/50 p-2 px-3 sm:p-3 sm:px-4 rounded-2xl shadow-md flex flex-col select-none max-w-[60vw] sm:max-w-none">
             <h1 className="font-alex text-lg sm:text-xl md:text-2xl font-normal text-[#743951] leading-none">
@@ -490,69 +499,8 @@ export default function HomeContent() {
             </p>
           </div>
 
-          {/* Odometer KM Card (Desktop) */}
-          {!isMobileDevice && (
-            <div className="pointer-events-auto bg-white/75 backdrop-blur-md border border-stone-200/50 p-2 px-3 sm:p-3 sm:px-4 rounded-2xl shadow-md flex flex-col items-end select-none">
-              <span className="text-[7.5px] sm:text-[9px] font-sans font-semibold tracking-wider text-stone-500 uppercase">
-                Distance Traveled
-              </span>
-              <span
-                ref={odometerRef}
-                className="font-mono text-xs sm:text-sm font-bold text-[#743951] mt-0.5"
-              >
-                0.00 KM
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Bottom HUD Row */}
-        <div className="w-full flex flex-col md:flex-row items-center justify-between gap-2.5 sm:gap-4">
-          {/* Quick Navigation Panel */}
-          <div className="order-2 md:order-1 pointer-events-auto w-full md:w-auto flex justify-center">
-            <div className="flex items-center gap-1 p-1 bg-white/80 backdrop-blur-md border border-stone-200/50 rounded-full shadow-md overflow-x-auto max-w-[94vw] scrollbar-hide">
-              {SECTION_WAYPOINTS.map((wp, index) => {
-                const getIcon = (idx: number) => {
-                  switch (idx) {
-                    case 0:
-                      return <Heart className="w-3.5 h-3.5" />;
-                    case 1:
-                      return <Compass className="w-3.5 h-3.5" />;
-                    case 2:
-                      return <Camera className="w-3.5 h-3.5" />;
-                    case 3:
-                      return <Calendar className="w-3.5 h-3.5" />;
-                    case 4:
-                      return <Gift className="w-3.5 h-3.5" />;
-                    case 5:
-                      return <MessageCircle className="w-3.5 h-3.5" />;
-                    case 6:
-                      return <MapPin className="w-3.5 h-3.5" />;
-                    default:
-                      return <MapPin className="w-3.5 h-3.5" />;
-                  }
-                };
-
-                return (
-                  <button
-                    key={wp.id}
-                    ref={(el) => {
-                      navButtonsRefs.current[index] = el;
-                    }}
-                    onClick={() => jumpToWaypoint(wp.progress, `section-${index + 1}`)}
-                    className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-stone-600 hover:bg-[#743951]/10 hover:text-[#743951] active:scale-95 transition-all text-[10px] sm:text-[11px] cursor-pointer select-none font-kalam font-medium whitespace-nowrap"
-                    title={wp.label}
-                  >
-                    {getIcon(index)}
-                    <span className="hidden sm:inline">{wp.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Music Controller Button (Dynamic Island Theme) */}
-          <div className="order-1 md:order-2 pointer-events-auto self-end md:self-auto flex items-center justify-end">
+          {/* Music Controller Button (Top Right for Mobile & Desktop) */}
+          <div className="pointer-events-auto flex items-center justify-end">
             <div
               onMouseEnter={() => setIsMusicHovered(true)}
               onMouseLeave={() => setIsMusicHovered(false)}
@@ -595,6 +543,51 @@ export default function HomeContent() {
             </div>
           </div>
         </div>
+
+        {/* Bottom HUD Row: Centered Navigation Bar */}
+        <div className="w-full flex justify-center">
+          <div className="pointer-events-auto flex justify-center">
+            <div className="flex items-center gap-1 p-1 bg-white/80 backdrop-blur-md border border-stone-200/50 rounded-full shadow-md overflow-x-auto max-w-[94vw] scrollbar-hide">
+              {SECTION_WAYPOINTS.map((wp, index) => {
+                const getIcon = (idx: number) => {
+                  switch (idx) {
+                    case 0:
+                      return <Heart className="w-3.5 h-3.5" />;
+                    case 1:
+                      return <Compass className="w-3.5 h-3.5" />;
+                    case 2:
+                      return <Camera className="w-3.5 h-3.5" />;
+                    case 3:
+                      return <Calendar className="w-3.5 h-3.5" />;
+                    case 4:
+                      return <Gift className="w-3.5 h-3.5" />;
+                    case 5:
+                      return <MessageCircle className="w-3.5 h-3.5" />;
+                    case 6:
+                      return <MapPin className="w-3.5 h-3.5" />;
+                    default:
+                      return <MapPin className="w-3.5 h-3.5" />;
+                  }
+                };
+
+                return (
+                  <button
+                    key={wp.id}
+                    ref={(el) => {
+                      navButtonsRefs.current[index] = el;
+                    }}
+                    onClick={() => jumpToWaypoint(wp.progress, `section-${index + 1}`)}
+                    className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-stone-600 hover:bg-[#743951]/10 hover:text-[#743951] active:scale-95 transition-all text-[10px] sm:text-[11px] cursor-pointer select-none font-kalam font-medium whitespace-nowrap"
+                    title={wp.label}
+                  >
+                    {getIcon(index)}
+                    <span className="hidden sm:inline">{wp.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ── Background Music audio element ───────────────── */}
@@ -605,14 +598,16 @@ export default function HomeContent() {
         preload="auto"
       />
 
-      {/* ── Hidden SVG for path calculations ─────────────── */}
-      <svg
-        className="absolute opacity-0 pointer-events-none w-full h-full"
-        viewBox={PATH_VIEWBOX}
-        aria-hidden="true"
-      >
-        <path ref={pathRef} d={CANVAS_SVG_PATH} />
-      </svg>
+      {/* ── Hidden SVG for path calculations (Only needed on Desktop) ── */}
+      {!isMobileDevice && (
+        <svg
+          className="absolute opacity-0 pointer-events-none w-full h-full"
+          viewBox={PATH_VIEWBOX}
+          aria-hidden="true"
+        >
+          <path ref={pathRef} d={CANVAS_SVG_PATH} />
+        </svg>
+      )}
 
       {/* ── Scroll Spacer (Only needed on Desktop) ────────── */}
       {!isMobileDevice && <div ref={scrollSpacerRef} className="canvas-scroll-spacer" />}

@@ -57,8 +57,8 @@ export default function DateTimeSection({ isMobile = false }: DateTimeSectionPro
         <h2 className="font-alex text-5xl font-normal text-[#737373] mb-4">It’s the Day!</h2>
 
         {/* Location Row */}
-        <div className="w-full max-w-sm flex items-center justify-center gap-2 mb-4 text-left">
-          <div className="relative w-8 h-8 shrink-0">
+        <div className="w-full max-w-sm flex items-start justify-center gap-2 mb-4 text-left">
+          <div className="relative w-10 h-10 shrink-0">
             <Image
               src="/assets/icons/map.png"
               alt="Map Icon"
@@ -67,25 +67,25 @@ export default function DateTimeSection({ isMobile = false }: DateTimeSectionPro
               unoptimized
             />
           </div>
-          <p className="font-kalam text-sm font-normal text-[#000000] leading-snug">
-            JI. Poros, Rt. 015, Desa Mekar Jaya (SPG) Merangin, Jambi
+          <p className="font-kalam text-md font-normal text-[#000000] leading-snug">
+            JI. Poros, Rt. 015, Desa Mekar Jaya (SPG) Kec.Tabir Selaran, Merangin, Jambi
           </p>
         </div>
 
         {/* Calendar Image */}
-        <div className="relative w-full max-w-xs h-[200px] overflow-hidden mb-4">
+        <div className="relative w-full max-w-sm aspect-[1428/1011] mb-4">
           <Image
             src="/assets/images/calendar.png"
             alt="Calendar"
             fill
-            className="object-cover"
+            className="object-contain"
             unoptimized
           />
         </div>
 
         {/* Countdown Section */}
         <h3 className="font-kalam text-2xl font-normal text-[#000000] mb-3">Save The Date</h3>
-        
+
         <div className="grid grid-cols-4 gap-3 font-kalam mb-6 w-full max-w-xs">
           <div className="flex flex-col items-center">
             <span className="text-3xl font-normal italic leading-none text-[#000000]">{displayDays}</span>

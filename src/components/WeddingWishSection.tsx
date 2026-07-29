@@ -211,36 +211,52 @@ export default function WeddingWishSection({ isMobile = false }: WeddingWishSect
 
                 {/* Sticky Notes Feed Grid */}
                 <div className="w-full max-w-xs grid grid-cols-2 gap-3 mb-5">
-                    {activeWishes.map((wish, index) => {
-                        const rotClass = rotations[index % rotations.length];
-                        return (
-                            <div
-                                key={wish.id}
-                                style={{ backgroundColor: wish.color }}
-                                className={`p-3 rounded shadow-sm border border-stone-200/50 font-kalam text-[#743951] flex flex-col justify-between text-left min-h-[120px] relative ${rotClass}`}
-                            >
-                                {/* Red push-pin top center */}
-                                <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-red-400 to-red-600 border border-white/60 shadow shadow-red-950/20" />
-                                    <div className="w-0.5 h-0.5 bg-stone-500 mx-auto -mt-0.5 rounded-b-sm" />
-                                </div>
+                    {error ? (
+                        <div className="col-span-2 p-4 bg-amber-50/90 border border-amber-200/80 rounded-lg text-center font-kalam text-[#743951] flex flex-col items-center gap-1 shadow-sm">
+                            <AlertCircle className="w-5 h-5 text-amber-600" />
+                            <span className="text-xs font-bold">{error}</span>
+                        </div>
+                    ) : loading ? (
+                        <div className="col-span-2 p-4 text-center font-kalam text-stone-500 text-xs italic">
+                            Memuat ucapan...
+                        </div>
+                    ) : activeWishes.length === 0 ? (
+                        <div className="col-span-2 p-4 bg-white/80 border border-dashed border-[#743951]/30 rounded-xl text-center font-kalam text-[#743951] flex flex-col items-center gap-1 shadow-sm">
+                            <span className="text-xs font-bold">Belum Ada Ucapan</span>
+                            <p className="text-[10px] text-stone-500 italic">Jadilah yang pertama memberikan doa restu di atas!</p>
+                        </div>
+                    ) : (
+                        activeWishes.map((wish, index) => {
+                            const rotClass = rotations[index % rotations.length];
+                            return (
+                                <div
+                                    key={wish.id}
+                                    style={{ backgroundColor: wish.color }}
+                                    className={`p-3 rounded shadow-sm border border-stone-200/50 font-kalam text-[#743951] flex flex-col justify-between text-left min-h-[120px] relative ${rotClass}`}
+                                >
+                                    {/* Red push-pin top center */}
+                                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-red-400 to-red-600 border border-white/60 shadow shadow-red-950/20" />
+                                        <div className="w-0.5 h-0.5 bg-stone-500 mx-auto -mt-0.5 rounded-b-sm" />
+                                    </div>
 
-                                <div>
-                                    <span className="text-xs font-bold block border-b border-[#743951]/10 pb-0.5 truncate text-center mt-1">{wish.name}</span>
-                                    <p className="text-[11px] text-stone-800 mt-1 line-clamp-3 italic">"{wish.text}"</p>
+                                    <div>
+                                        <span className="text-xs font-bold block border-b border-[#743951]/10 pb-0.5 truncate text-center mt-1">{wish.name}</span>
+                                        <p className="text-[11px] text-stone-800 mt-1 line-clamp-3 italic">"{wish.text}"</p>
+                                    </div>
+                                    <div className="flex justify-between items-center mt-2 pt-1 border-t border-[#743951]/10 text-[9px] text-stone-500 font-sans">
+                                        <span>{wish.date}</span>
+                                        {wish.creatorId === userId && (
+                                            <div className="flex gap-1">
+                                                <button onClick={() => { setEditingWishId(wish.id); setName(wish.name); setWishText(wish.text); setSelectedColor(wish.color); }} className="p-0.5" title="Edit ucapan"><Pencil className="w-3 h-3" /></button>
+                                                <button onClick={() => handleDeleteWish(wish.id)} className="p-0.5 text-red-600" title="Hapus ucapan"><Trash2 className="w-3 h-3" /></button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="flex justify-between items-center mt-2 pt-1 border-t border-[#743951]/10 text-[9px] text-stone-500 font-sans">
-                                    <span>{wish.date}</span>
-                                    {wish.creatorId === userId && (
-                                        <div className="flex gap-1">
-                                            <button onClick={() => { setEditingWishId(wish.id); setName(wish.name); setWishText(wish.text); setSelectedColor(wish.color); }} className="p-0.5"><Pencil className="w-3 h-3" /></button>
-                                            <button onClick={() => handleDeleteWish(wish.id)} className="p-0.5 text-red-600"><Trash2 className="w-3 h-3" /></button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })
+                    )}
                 </div>
 
                 {wishes.length > 8 && (

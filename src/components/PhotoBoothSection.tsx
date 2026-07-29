@@ -354,33 +354,50 @@ export default function PhotoBoothSection({ isMobile = false }: PhotoBoothSectio
 
                 {/* Polaroids Grid Feed */}
                 <div className="w-full max-w-xs grid grid-cols-2 gap-3 mb-5">
-                    {activePhotos.map((photo, index) => {
-                        const rotClass = rotations[index % rotations.length];
-                        return (
-                            <div
-                                key={photo.id}
-                                className={`w-full ${rotClass} bg-[#fafaf9] rounded shadow-md border border-stone-200 p-2 flex flex-col items-center relative select-none`}
-                            >
-                                {/* Tape decoration on top */}
-                                <div className="absolute -top-1.5 w-6 h-2 bg-amber-100/60 rotate-[-8deg] rounded-sm shadow-sm" />
+                    {error ? (
+                        <div className="col-span-2 p-4 bg-amber-50/90 border border-amber-200/80 rounded-lg text-center font-kalam text-[#743951] flex flex-col items-center gap-1 shadow-sm">
+                            <AlertCircle className="w-5 h-5 text-amber-600" />
+                            <span className="text-xs font-bold">{error}</span>
+                        </div>
+                    ) : loading ? (
+                        <div className="col-span-2 p-4 text-center font-kalam text-stone-500 text-xs italic">
+                            Memuat galeri foto...
+                        </div>
+                    ) : activePhotos.length === 0 ? (
+                        <div className="col-span-2 p-4 bg-white/80 border border-dashed border-[#743951]/30 rounded-xl text-center font-kalam text-[#743951] flex flex-col items-center gap-1 shadow-sm">
+                            <CameraOff className="w-5 h-5 text-[#743951]/60" />
+                            <span className="text-xs font-bold">Belum Ada Foto</span>
+                            <p className="text-[10px] text-stone-500 italic">Bagikan foto momen bahagiamu di atas!</p>
+                        </div>
+                    ) : (
+                        activePhotos.map((photo, index) => {
+                            const rotClass = rotations[index % rotations.length];
+                            return (
+                                <div
+                                    key={photo.id}
+                                    className={`w-full ${rotClass} bg-[#fafaf9] rounded shadow-md border border-stone-200 p-2 flex flex-col items-center relative select-none`}
+                                >
+                                    {/* Tape decoration on top */}
+                                    <div className="absolute -top-1.5 w-6 h-2 bg-amber-100/60 rotate-[-8deg] rounded-sm shadow-sm" />
 
-                                <div className="relative w-full aspect-square bg-stone-100 border border-stone-200/50 rounded-sm overflow-hidden mb-1">
-                                    <Image src={photo.imageSrc} alt="Polaroid" fill className="object-contain p-0.5" unoptimized />
+                                    <div className="relative w-full aspect-square bg-stone-100 border border-stone-200/50 rounded-sm overflow-hidden mb-1">
+                                        <Image src={photo.imageSrc} alt="Polaroid" fill className="object-contain p-0.5" unoptimized />
+                                    </div>
+                                    <span className="font-kalam text-xs font-bold text-[#743951] truncate w-full mt-1">{photo.guestName}</span>
+                                    <span className="font-kalam text-[10px] text-stone-500 italic truncate w-full">"{photo.caption}"</span>
+                                    <div className="flex justify-between items-center w-full mt-1 pt-1 border-t border-stone-200/60 font-sans text-[9px] text-stone-400">
+                                        <span>{photo.date}</span>
+                                        {photo.creatorId === userId && (
+                                            <div className="flex gap-1">
+                                                <button onClick={() => { setEditingPhotoId(photo.id); setEditingPhotoOldFileId(photo.fileId); setGuestName(photo.guestName); setCaption(photo.caption); setTempImage(photo.imageSrc); setSelectedFile(null); }} className="p-0.5" title="Edit foto"><Pencil className="w-3 h-3 text-[#743951]" /></button>
+                                                <button onClick={() => handleDeletePhoto(photo.id, photo.fileId)} className="p-0.5" title="Hapus foto"><Trash2 className="w-3 h-3 text-red-600" /></button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                                <span className="font-kalam text-xs font-bold text-[#743951] truncate w-full mt-1">{photo.guestName}</span>
-                                <span className="font-kalam text-[10px] text-stone-500 italic truncate w-full">"{photo.caption}"</span>
-                                <div className="flex justify-between items-center w-full mt-1 pt-1 border-t border-stone-200/60 font-sans text-[9px] text-stone-400">
-                                    <span>{photo.date}</span>
-                                    {photo.creatorId === userId && (
-                                        <div className="flex gap-1">
-                                            <button onClick={() => { setEditingPhotoId(photo.id); setEditingPhotoOldFileId(photo.fileId); setGuestName(photo.guestName); setCaption(photo.caption); setTempImage(photo.imageSrc); setSelectedFile(null); }} className="p-0.5"><Pencil className="w-3 h-3 text-[#743951]" /></button>
-                                            <button onClick={() => handleDeletePhoto(photo.id, photo.fileId)} className="p-0.5"><Trash2 className="w-3 h-3 text-red-600" /></button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })
+                    )}
                 </div>
 
                 {photos.length > 12 && (
