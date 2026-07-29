@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { Camera, Upload, Check, RefreshCw, Pencil, Trash2 } from "lucide-react";
 import { collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
@@ -87,7 +88,6 @@ export default function PhotoBoothSection() {
     const [userId, setUserId] = useState("");
     const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
     const [editingPhotoOldFileId, setEditingPhotoOldFileId] = useState<string | undefined>(undefined);
-    const [isViewAllOpen, setIsViewAllOpen] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -200,7 +200,7 @@ export default function PhotoBoothSection() {
             } else {
                 // Create Photo: Must have a selected file
                 if (!selectedFile) {
-                    alert("Silakan pilih foto terlebih dahulu.");
+                    alert("Silakan pilih file gambar dari perangkat Anda.");
                     setSubmitting(false);
                     return;
                 }
@@ -209,7 +209,7 @@ export default function PhotoBoothSection() {
                 formData.append("file", selectedFile);
                 const driveRes = await uploadToDrive(formData);
 
-                if (!driveRes.success) {
+                if (!driveRes.success || !driveRes.imageUrl) {
                     throw new Error(driveRes.error || "Gagal mengunggah foto ke Google Drive.");
                 }
 
@@ -217,7 +217,7 @@ export default function PhotoBoothSection() {
                     guestName: guestName.trim(),
                     caption: caption.trim() || "Momen bahagia!",
                     imageSrc: driveRes.imageUrl,
-                    fileId: driveRes.fileId,
+                    fileId: driveRes.fileId || "",
                     date: formattedDate,
                     creatorId: userId,
                     createdAt: serverTimestamp(),
@@ -231,9 +231,9 @@ export default function PhotoBoothSection() {
             setSelectedFile(null);
 
             setTimeout(() => setSubmitted(false), 3000);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error submitting photo:", error);
-            alert("Terjadi kesalahan saat memproses foto. Silakan coba lagi.");
+            alert(error.message || "Gagal menempelkan foto. Silakan coba lagi.");
         } finally {
             setSubmitting(false);
         }
@@ -242,10 +242,10 @@ export default function PhotoBoothSection() {
     const handleDeletePhoto = async (id: string, fileId?: string) => {
         if (!confirm("Apakah Anda yakin ingin menghapus foto ini?")) return;
         try {
+            await deleteDoc(doc(db, "photos", id));
             if (fileId) {
                 await deleteFromDrive(fileId);
             }
-            await deleteDoc(doc(db, "photos", id));
         } catch (error) {
             console.error("Error deleting photo:", error);
             alert("Gagal menghapus foto dari database.");
@@ -265,12 +265,12 @@ export default function PhotoBoothSection() {
 
     return (
         <>
-            {/* Photo Booth Form (Landscape Paper Card Layout) - Width 480px, left: 2190px */}
+            {/* Photo Booth Form (Landscape Paper Card Layout) - Width 480px */}
             <div
                 style={{
                     position: "absolute",
-                    left: "2190px",
-                    top: "1120px",
+                    left: "2390px",
+                    top: "1860px",
                     width: "480px",
                     minHeight: "180px",
                 }}
@@ -354,8 +354,8 @@ export default function PhotoBoothSection() {
                                     disabled={submitting || !tempImage}
                                     className="w-full py-1.5 bg-[#743951] text-white font-semibold rounded shadow-sm hover:bg-[#5c2d40] active:scale-[0.98] text-[11px] cursor-pointer disabled:opacity-50 select-none transition-colors"
                                 >
-                                    {submitting 
-                                        ? (editingPhotoId ? "Menyimpan..." : "Menempelkan...") 
+                                    {submitting
+                                        ? (editingPhotoId ? "Menyimpan..." : "Menempelkan...")
                                         : (editingPhotoId ? "Simpan Perubahan" : "Tempel Foto")}
                                 </button>
                                 {editingPhotoId && (
@@ -380,12 +380,12 @@ export default function PhotoBoothSection() {
                 )}
             </div>
 
-            {/* Pinned Real-time Photos (Polaroids Grid) - Width 480px, ends at 2670px */}
+            {/* Pinned Real-time Photos (Polaroids Grid) - Width 480px */}
             <div
                 style={{
                     position: "absolute",
-                    left: "2190px",
-                    top: "1320px",
+                    left: "2390px",
+                    top: "2060px",
                     width: "480px",
                 }}
                 className="grid grid-cols-4 gap-2.5"
@@ -465,118 +465,23 @@ export default function PhotoBoothSection() {
                 })}
             </div>
 
-            {/* View All Photos Button */}
-            <div
-                style={{
-                    position: "absolute",
-                    left: "2190px",
-                    top: "1760px",
-                    width: "480px",
-                }}
-                className="flex justify-center"
-            >
-                <button
-                    type="button"
-                    onClick={() => setIsViewAllOpen(true)}
-                    className="px-5 py-1 bg-white/90 border border-[#743951]/20 hover:bg-white text-[#743951] font-kalam font-bold text-[11px] rounded-full shadow-sm cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-image-pop"
+            {/* View All Photos Link Button (Navigates to /photos page) */}
+            {photos.length > 12 && (
+                <div
+                    style={{
+                        position: "absolute",
+                        left: "2390px",
+                        top: "2360px",
+                        width: "480px",
+                    }}
+                    className="flex justify-center"
                 >
-                    View All Photos ({photos.length})
-                </button>
-            </div>
-
-            {/* View All Photos Modal */}
-            {isViewAllOpen && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-[#FAF9F6] border-2 border-[#743951]/30 rounded-2xl w-11/12 md:w-full max-w-5xl max-h-[90vh] md:max-h-[85vh] flex flex-col p-4 sm:p-8 shadow-2xl relative font-kalam text-[#743951]">
-                        {/* Close button */}
-                        <button
-                            onClick={() => setIsViewAllOpen(false)}
-                            className="absolute top-4 right-4 text-stone-400 hover:text-[#743951] transition-colors p-1 cursor-pointer rounded-full hover:bg-stone-100"
-                        >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                        
-                        <h3 className="text-2xl font-bold text-center border-b border-[#743951]/25 pb-3 mb-6 italic">
-                            All Polaroid Photos ({photos.length})
-                        </h3>
-                        
-                        <div className="overflow-y-auto flex-1 pr-2 scrollbar-thin scrollbar-thumb-[#743951]/20">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 pb-4">
-                                {photos.map((photo, index) => {
-                                    const rotClass = rotations[index % rotations.length];
-                                    return (
-                                        <div
-                                            key={photo.id}
-                                            className={`w-full ${rotClass} bg-[#fafaf9] rounded shadow-md border border-stone-200 p-2 pb-3.5 flex flex-col items-center transition-all duration-300 hover:scale-105 hover:rotate-0 select-none relative`}
-                                        >
-                                            {/* Tape decoration */}
-                                            <div className="absolute -top-1.5 w-6 h-2 bg-amber-100/60 rotate-[-8deg] rounded-sm shadow-sm" />
-
-                                            {/* Polaroid Image */}
-                                            <div className="relative w-full aspect-square bg-stone-100 border border-stone-200/50 rounded-sm overflow-hidden">
-                                                <Image
-                                                    src={photo.imageSrc}
-                                                    alt="Polaroid View"
-                                                    fill
-                                                    className="object-cover"
-                                                    unoptimized
-                                                />
-                                            </div>
-
-                                            {/* Polaroid details */}
-                                            <div className="w-full flex flex-col mt-2 font-kalam text-center leading-tight gap-y-0.5">
-                                                <span className="text-[10px] font-bold text-[#743951] truncate">
-                                                    {photo.guestName}
-                                                </span>
-                                                <span className="text-[8.5px] text-stone-600 truncate italic">
-                                                    "{photo.caption}"
-                                                </span>
-                                                <div className="flex justify-between items-center mt-1 pt-1 border-t border-stone-200/60">
-                                                    <div className="flex gap-1.5 z-20">
-                                                        {photo.creatorId === userId && (
-                                                            <>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setEditingPhotoId(photo.id);
-                                                                        setEditingPhotoOldFileId(photo.fileId);
-                                                                        setGuestName(photo.guestName);
-                                                                        setCaption(photo.caption);
-                                                                        setTempImage(photo.imageSrc);
-                                                                        setSelectedFile(null);
-                                                                        setIsViewAllOpen(false); // Close to focus on form
-                                                                    }}
-                                                                    className="p-1 hover:bg-[#743951]/15 rounded text-[#743951] cursor-pointer transition-colors"
-                                                                    title="Edit foto"
-                                                                >
-                                                                    <Pencil className="w-3.5 h-3.5" />
-                                                                </button>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleDeletePhoto(photo.id, photo.fileId);
-                                                                    }}
-                                                                    className="p-1 hover:bg-red-100 rounded text-red-600 cursor-pointer transition-colors"
-                                                                    title="Hapus foto"
-                                                                >
-                                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                                </button>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                    <span className="text-[7.5px] text-stone-400 font-sans font-semibold ml-auto">
-                                                        {photo.date}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </div>
+                    <Link
+                        href="/photos"
+                        className="px-5 py-1 bg-white/90 border border-[#743951]/20 hover:bg-white text-[#743951] font-kalam font-bold text-[11px] rounded-full shadow-sm cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-image-pop"
+                    >
+                        View All Photos ({photos.length})
+                    </Link>
                 </div>
             )}
 

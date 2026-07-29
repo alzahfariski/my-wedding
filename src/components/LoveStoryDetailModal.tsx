@@ -226,7 +226,7 @@ export default function LoveStoryDetailModal({
             {/* Preview Header when letter is tucked / rising in small mode */}
             {animStage !== "expanded" && animStage !== "expanding" && (
               <div className="flex flex-col items-center justify-center h-full text-center">
-                <span className="font-alex text-2xl sm:text-3xl font-bold text-[#743951] border-b border-[#743951]/20 pb-1 mb-2 w-full">
+                <span className="font-alex text-2xl sm:text-3xl font-normal text-[#743951] border-b border-[#743951]/20 pb-1 mb-2 w-full">
                   Our Love Story
                 </span>
                 <p className="text-xs text-stone-600 italic line-clamp-2 px-2">
@@ -240,7 +240,7 @@ export default function LoveStoryDetailModal({
               <div className="flex flex-col h-full opacity-100 transition-opacity duration-300">
                 {/* Letter Header */}
                 <div className="text-center border-b-2 border-[#743951]/20 pb-4 mb-6 mt-2">
-                  <h2 className="font-alex text-5xl sm:text-6xl md:text-7xl font-bold text-[#743951]">
+                  <h2 className="font-alex text-5xl sm:text-6xl md:text-7xl font-normal text-[#743951]">
                     Our Love Story
                   </h2>
                   <p className="font-kalam text-sm sm:text-base text-stone-500 mt-1 italic">

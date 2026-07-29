@@ -416,7 +416,7 @@ export default function HomeContent() {
             <WeddingWishSection />
 
             {/* section 7 - Photo Booth */}
-            {/* <PhotoBoothSection /> */}
+            <PhotoBoothSection />
           </div>
         </div>
       </div>

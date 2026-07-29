@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Check, Pencil, Trash2 } from "lucide-react";
 import { collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -17,68 +18,68 @@ interface Wish {
 const DEFAULT_WISHES: Wish[] = [
     {
         id: "wish-1",
-        name: "Keluarga Sukardi",
-        text: "Selamat menempuh hidup baru Putra & Putri! Semoga menjadi keluarga sakinah, mawaddah, warahmah.",
+        name: "Dimas & Sarah",
+        text: "Selamat ya Alzha & Effri! Semoga menjadi keluarga yang sakinah, mawaddah, warahmah.",
         date: "26.07.2026",
-        color: "#fef08a", // Yellow
+        color: "#fef08a",
     },
     {
         id: "wish-2",
         name: "Rian Ardiansyah",
-        text: "Happy wedding bro! Lancar sampai hari H ya, bahagia selalu dengan istri tercinta!",
+        text: "Lancar sampai hari H ya kawan! Semoga langgeng selamanya.",
         date: "26.07.2026",
-        color: "#fbcfe8", // Pink
+        color: "#bbf7d0",
     },
     {
         id: "wish-3",
-        name: "Siti Lestari",
-        text: "Barakallah, selamat menempuh lembaran baru. Semoga cinta kalian abadi selamanya.",
+        name: "Keluarga Besar Budi",
+        text: "Happy Wedding! Barokallahu lakuma wa baroka 'alaikuma.",
         date: "26.07.2026",
-        color: "#bbf7d0", // Green
+        color: "#bfdbfe",
     },
     {
         id: "wish-4",
-        name: "Budi Santoso",
-        text: "Selamat menempuh hidup baru! Semoga dilimpahi rezeki dan kebahagiaan.",
+        name: "Amanda",
+        text: "Selamat menempuh hidup baru sahabatku tercinta!",
         date: "26.07.2026",
-        color: "#bfdbfe", // Blue
+        color: "#fbcfe8",
     },
     {
         id: "wish-5",
-        name: "Siti Rahma",
-        text: "Selamat ya untuk kedua mempelai! Sakinah mawaddah warahmah selalu.",
+        name: "Budi Santoso",
+        text: "Semoga cinta kalian abadi hingga akhir hayat.",
         date: "26.07.2026",
-        color: "#fed7aa", // Orange
+        color: "#fed7aa",
     },
     {
         id: "wish-6",
-        name: "Adi Nugroho",
-        text: "Selamat menempuh bahtera rumah tangga, semoga selalu harmonis dan bahagia.",
+        name: "Siti & Mas Gun",
+        text: "Selamat melangkah ke jenjang yang baru!",
         date: "26.07.2026",
-        color: "#fef08a", // Yellow
+        color: "#fef08a",
     },
     {
         id: "wish-7",
-        name: "Dewi Lestari",
-        text: "Happy wedding! Sangat bahagia melihat kalian bersatu. Doa terbaik untuk kalian berdua.",
+        name: "Keluarga Iskandar",
+        text: "Doa terbaik kami menyertai kebahagiaan kalian.",
         date: "26.07.2026",
-        color: "#fbcfe8", // Pink
+        color: "#bbf7d0",
     },
     {
         id: "wish-8",
-        name: "Hendra Wijaya",
-        text: "Selamat menempuh hidup baru! Semoga rukun selalu sampai kakek nenek.",
+        name: "Rina & Teman-teman",
+        text: "Selamat menua bersama Alzha & Effri!",
         date: "26.07.2026",
-        color: "#bbf7d0", // Green
+        color: "#bfdbfe",
     },
 ];
 
 const NOTE_COLORS = [
-    { name: "Yellow", value: "#fef08a", border: "ring-yellow-300" },
-    { name: "Pink", value: "#fbcfe8", border: "ring-pink-300" },
-    { name: "Green", value: "#bbf7d0", border: "ring-green-300" },
-    { name: "Blue", value: "#bfdbfe", border: "ring-blue-300" },
-    { name: "Orange", value: "#fed7aa", border: "ring-orange-300" },
+    { name: "Kuning Pastel", value: "#fef08a", border: "ring-yellow-300" },
+    { name: "Hijau Mint", value: "#bbf7d0", border: "ring-green-300" },
+    { name: "Biru Muda", value: "#bfdbfe", border: "ring-blue-300" },
+    { name: "Pink Soft", value: "#fbcfe8", border: "ring-pink-300" },
+    { name: "Krem Warm", value: "#fed7aa", border: "ring-orange-300" },
 ];
 
 export default function WeddingWishSection() {
@@ -90,7 +91,6 @@ export default function WeddingWishSection() {
     const [submitted, setSubmitted] = useState(false);
     const [userId, setUserId] = useState<string>("");
     const [editingWishId, setEditingWishId] = useState<string | null>(null);
-    const [isViewAllOpen, setIsViewAllOpen] = useState(false);
 
     // Initialize/Get User ID from localStorage
     useEffect(() => {
@@ -274,8 +274,8 @@ export default function WeddingWishSection() {
                                     disabled={submitting}
                                     className="w-full py-1.5 bg-[#743951] text-white font-semibold rounded shadow-sm hover:bg-[#5c2d40] active:scale-[0.98] text-[11px] cursor-pointer disabled:opacity-50 select-none mt-auto transition-colors"
                                 >
-                                    {submitting 
-                                        ? (editingWishId ? "Menyimpan..." : "Memasang...") 
+                                    {submitting
+                                        ? (editingWishId ? "Menyimpan..." : "Memasang...")
                                         : (editingWishId ? "Simpan Perubahan" : "Pasang Ucapan")}
                                 </button>
                                 {editingWishId && (
@@ -376,7 +376,7 @@ export default function WeddingWishSection() {
                 })}
             </div>
 
-            {/* View All Button (Only visible if wishes exceed maximum 8 sticky notes) */}
+            {/* View All Wishes Link Button (Navigates to /wishes page) */}
             {wishes.length > 8 && (
                 <div
                     style={{
@@ -387,105 +387,12 @@ export default function WeddingWishSection() {
                     }}
                     className="flex justify-center"
                 >
-                    <button
-                        type="button"
-                        onClick={() => setIsViewAllOpen(true)}
+                    <Link
+                        href="/wishes"
                         className="px-5 py-1 bg-white/90 border border-[#743951]/20 hover:bg-white text-[#743951] font-kalam font-bold text-[11px] rounded-full shadow-sm cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-image-pop"
                     >
                         View All Wishes ({wishes.length})
-                    </button>
-                </div>
-            )}
-
-            {/* View All Wishes Modal */}
-            {isViewAllOpen && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-[#FAF9F6] border-2 border-[#743951]/30 rounded-2xl w-11/12 md:w-full max-w-4xl max-h-[90vh] md:max-h-[85vh] flex flex-col p-4 sm:p-8 shadow-2xl relative font-kalam text-[#743951]">
-                        {/* Close button */}
-                        <button
-                            onClick={() => setIsViewAllOpen(false)}
-                            className="absolute top-4 right-4 text-stone-400 hover:text-[#743951] transition-colors p-1 cursor-pointer rounded-full hover:bg-stone-100"
-                        >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                        
-                        <h3 className="text-2xl font-bold text-center border-b border-[#743951]/25 pb-3 mb-6 italic">
-                            All Wedding Wishes ({wishes.length})
-                        </h3>
-                        
-                        <div className="overflow-y-auto flex-1 pr-2 scrollbar-thin scrollbar-thumb-[#743951]/20">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-4">
-                                {wishes.map((wish, index) => {
-                                    const rotClass = rotations[index % rotations.length];
-                                    return (
-                                        <div
-                                            key={wish.id}
-                                            style={{
-                                                backgroundColor: wish.color,
-                                                minHeight: "130px",
-                                            }}
-                                            className={`w-full ${rotClass} transition-all duration-300 hover:scale-105 hover:rotate-0 flex flex-col justify-between p-3.5 shadow-md border border-stone-300/40 relative rounded-sm`}
-                                        >
-                                            {/* Red push-pin */}
-                                            <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10">
-                                                <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-red-400 to-red-600 border border-white/60 shadow" />
-                                                <div className="w-0.5 h-0.5 bg-stone-500 mx-auto -mt-0.5 rounded-b-sm" />
-                                            </div>
-
-                                            {/* Content */}
-                                            <div className="w-full flex flex-col h-full justify-between pt-1">
-                                                <div>
-                                                    <span className="text-xs font-bold italic leading-none border-b border-[#743951]/10 pb-0.5 block w-full text-center truncate">
-                                                        {wish.name}
-                                                    </span>
-                                                    <p className="text-[10px] font-normal leading-relaxed mt-2 text-stone-850 italic text-left max-h-[80px] overflow-y-auto scrollbar-hide">
-                                                        "{wish.text}"
-                                                    </p>
-                                                </div>
-                                                <div className="flex justify-between items-center mt-2 pt-1 border-t border-[#743951]/5">
-                                                    <div className="flex gap-2">
-                                                        {wish.creatorId === userId && (
-                                                            <>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setEditingWishId(wish.id);
-                                                                        setName(wish.name);
-                                                                        setWishText(wish.text);
-                                                                        setSelectedColor(wish.color);
-                                                                        setIsViewAllOpen(false); // Close modal to focus on edit form
-                                                                    }}
-                                                                    className="p-1 hover:bg-[#743951]/15 rounded text-[#743951] cursor-pointer transition-colors"
-                                                                    title="Edit ucapan"
-                                                                >
-                                                                    <Pencil className="w-3.5 h-3.5" />
-                                                                </button>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleDeleteWish(wish.id);
-                                                                    }}
-                                                                    className="p-1 hover:bg-red-100 rounded text-red-600 cursor-pointer transition-colors"
-                                                                    title="Hapus ucapan"
-                                                                >
-                                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                                </button>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                    <span className="text-[8px] font-semibold text-stone-500/80 text-right font-sans">
-                                                        {wish.date}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </div>
+                    </Link>
                 </div>
             )}
         </>
