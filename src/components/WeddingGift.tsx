@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, AlertCircle } from "lucide-react";
+import { submitConfirmation } from "@/services/confirmationService";
 
 interface WeddingGiftSectionProps {
     isMobile?: boolean;
@@ -18,22 +19,77 @@ export default function WeddingGiftSection({ isMobile = false }: WeddingGiftSect
     });
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [userId, setUserId] = useState<string>("");
 
-    const handleCopy = (accountNumber: string, cardId: string) => {
-        navigator.clipboard.writeText(accountNumber);
-        setCopiedCard(cardId);
-        setTimeout(() => setCopiedCard(null), 2000);
+    useEffect(() => {
+        let storedId = localStorage.getItem("wedding_user_id");
+        if (!storedId) {
+            storedId = "user_" + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+            localStorage.setItem("wedding_user_id", storedId);
+        }
+        setUserId(storedId);
+    }, []);
+
+    const handleCopy = async (accountNumber: string, cardId: string) => {
+        try {
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+                await navigator.clipboard.writeText(accountNumber);
+            } else {
+                // Fallback for non-HTTPS (HTTP) mobile browsers and webviews
+                const textArea = document.createElement("textarea");
+                textArea.value = accountNumber;
+                textArea.style.position = "fixed";
+                textArea.style.top = "0";
+                textArea.style.left = "0";
+                textArea.style.width = "2em";
+                textArea.style.height = "2em";
+                textArea.style.padding = "0";
+                textArea.style.border = "none";
+                textArea.style.outline = "none";
+                textArea.style.boxShadow = "none";
+                textArea.style.background = "transparent";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                document.execCommand("copy");
+                document.body.removeChild(textArea);
+            }
+            setCopiedCard(cardId);
+            setTimeout(() => setCopiedCard(null), 2000);
+        } catch (err) {
+            console.error("Failed to copy account number:", err);
+            // Still show check mark feedback to user
+            setCopiedCard(cardId);
+            setTimeout(() => setCopiedCard(null), 2000);
+        }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!formData.name.trim() || !formData.amount.trim()) return;
+
         setSubmitting(true);
-        setTimeout(() => {
-            setSubmitting(false);
+        setError(null);
+
+        try {
+            await submitConfirmation({
+                name: formData.name,
+                amount: formData.amount,
+                bank: formData.bank,
+                message: formData.message,
+                creatorId: userId,
+            });
+
             setSubmitted(true);
             setFormData({ name: "", bank: "", amount: "", message: "" });
             setTimeout(() => setSubmitted(false), 5000);
-        }, 1500);
+        } catch (err) {
+            console.error("Error submitting confirmation to Firebase:", err);
+            setError("Gagal mengirim konfirmasi. Silakan coba lagi.");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     if (isMobile) {
@@ -157,6 +213,13 @@ export default function WeddingGiftSection({ isMobile = false }: WeddingGiftSect
                     <div className="text-xl font-alex mb-3 border-b border-[#743951]/10 pb-1 text-center">
                         Confirmations Form
                     </div>
+
+                    {error && (
+                        <div className="flex items-center gap-2 p-2 mb-3 bg-red-50 text-red-600 rounded border border-red-200 text-xs">
+                            <AlertCircle className="w-4 h-4 shrink-0" />
+                            <span>{error}</span>
+                        </div>
+                    )}
 
                     {submitted ? (
                         <div className="flex flex-col items-center justify-center py-6 gap-2 text-center">
@@ -439,6 +502,13 @@ export default function WeddingGiftSection({ isMobile = false }: WeddingGiftSect
                 <div className="text-[20px] font-alex font-normal mb-4 border-b border-[#743951]/10 pb-1 text-start">
                     Confirmations Form
                 </div>
+
+                {error && (
+                    <div className="flex items-center gap-2 p-2 mb-3 bg-red-50 text-red-600 rounded border border-red-200 text-[12px]">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <span>{error}</span>
+                    </div>
+                )}
 
                 {submitted ? (
                     <div className="flex flex-col items-center justify-center py-8 gap-3 text-center">

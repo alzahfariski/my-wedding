@@ -125,6 +125,39 @@ export default function HomeContent() {
     return () => window.removeEventListener("resize", handleCheckMobile);
   }, []);
 
+  // Audio Autoplay Listener (Fires on user click for both Mobile and Desktop)
+  useEffect(() => {
+    const handleOpenBoardClicked = () => {
+      const audio = audioRef.current;
+      if (audio && audio.paused) {
+        audio.play().then(() => {
+          setIsMusicPlaying(true);
+        }).catch(err => {
+          console.log("Audio play failed on gesture event:", err);
+        });
+      }
+    };
+
+    const handleScrollReady = () => {
+      const audio = audioRef.current;
+      if (audio && audio.paused) {
+        audio.play().then(() => {
+          setIsMusicPlaying(true);
+        }).catch(err => {
+          console.log("Audio play blocked by browser.", err);
+        });
+      }
+    };
+
+    window.addEventListener("open-board-clicked", handleOpenBoardClicked);
+    window.addEventListener("scroll-ready", handleScrollReady);
+
+    return () => {
+      window.removeEventListener("open-board-clicked", handleOpenBoardClicked);
+      window.removeEventListener("scroll-ready", handleScrollReady);
+    };
+  }, []);
+
   // Mobile IntersectionObserver for scroll-to-highlight navigation buttons
   useEffect(() => {
     if (!isMobileDevice) return;
