@@ -17,6 +17,9 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { uploadToDrive, deleteFromDrive } from "@/app/actions/uploadDrive";
+import { generateFramedImage } from "@/lib/frameHelper";
+import CameraModal from "@/components/CameraModal";
+import PasswordPromptModal from "@/components/PasswordPromptModal";
 
 interface PinnedPhoto {
   id: string;
@@ -38,6 +41,11 @@ export default function PhotosPage() {
 
   // Form state
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isPasswordVerified, setIsPasswordVerified] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"camera" | "file" | null>(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+
   const [guestName, setGuestName] = useState("");
   const [caption, setCaption] = useState("");
   const [tempImage, setTempImage] = useState<string | null>(null);
@@ -97,20 +105,54 @@ export default function PhotosPage() {
     return () => unsubscribe();
   }, []);
 
+  const triggerActionWithPassword = (action: "camera" | "file") => {
+    if (isPasswordVerified) {
+      if (action === "camera") {
+        setIsCameraOpen(true);
+      } else {
+        fileInputRef.current?.click();
+      }
+    } else {
+      setPendingAction(action);
+      setIsPasswordModalOpen(true);
+    }
+  };
+
+  const handlePasswordSuccess = () => {
+    setIsPasswordVerified(true);
+    if (pendingAction === "camera") {
+      setIsCameraOpen(true);
+    } else if (pendingAction === "file") {
+      setTimeout(() => {
+        fileInputRef.current?.click();
+      }, 100);
+    }
+    setPendingAction(null);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
       const reader = new FileReader();
-      reader.onload = (event) => {
-        setTempImage(event.target?.result as string);
+      reader.onload = async (event) => {
+        const rawDataUrl = event.target?.result as string;
+        try {
+          // Automatically composite frame_photobooth.png overlay
+          const { dataUrl, file: framedFile } = await generateFramedImage(rawDataUrl);
+          setTempImage(dataUrl);
+          setSelectedFile(framedFile);
+        } catch (err) {
+          console.error("Framing error:", err);
+          alert("Gagal memasang frame pada foto.");
+        }
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
+  const handleCameraCapture = (framedDataUrl: string, framedFile: File) => {
+    setTempImage(framedDataUrl);
+    setSelectedFile(framedFile);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -163,7 +205,7 @@ export default function PhotosPage() {
         setEditingPhotoOldFileId(undefined);
       } else {
         if (!selectedFile) {
-          alert("Silakan pilih file gambar dari perangkat Anda.");
+          alert("Silakan pilih foto atau ambil gambar melalui kamera.");
           setSubmitting(false);
           return;
         }
@@ -249,6 +291,23 @@ export default function PhotosPage() {
         className="hidden"
       />
 
+      {/* Password Verification Modal */}
+      <PasswordPromptModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => {
+          setIsPasswordModalOpen(false);
+          setPendingAction(null);
+        }}
+        onSuccess={handlePasswordSuccess}
+      />
+
+      {/* Live Web Camera Viewfinder Modal */}
+      <CameraModal
+        isOpen={isCameraOpen}
+        onClose={() => setIsCameraOpen(false)}
+        onCapture={handleCameraCapture}
+      />
+
       {/* Header Navigation */}
       <div className="max-w-6xl mx-auto flex items-center justify-between border-b border-[#743951]/20 pb-4 mb-8">
         <Link
@@ -325,15 +384,16 @@ export default function PhotosPage() {
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold">Pilih Foto:</label>
-              <div className="relative w-full h-40 bg-stone-100 border-2 border-dashed border-[#743951]/30 rounded-xl flex items-center justify-center overflow-hidden">
+            {/* Photo Preview Container (Portrait 1080x1350 Aspect Ratio) */}
+            <div className="flex flex-col gap-1.5 mt-1">
+              <label className="text-xs font-bold text-center">Foto Ter-Frame (1080 x 1350):</label>
+              <div className="relative w-full max-w-[240px] aspect-[1080/1350] bg-stone-100 border-2 border-dashed border-[#743951]/30 rounded-xl flex items-center justify-center overflow-hidden shadow-inner mx-auto">
                 {tempImage ? (
                   <>
                     <img
                       src={tempImage}
                       alt="Preview Upload"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain p-1"
                     />
                     <button
                       type="button"
@@ -341,26 +401,40 @@ export default function PhotosPage() {
                         setTempImage(null);
                         setSelectedFile(null);
                       }}
-                      className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 rounded-full text-white cursor-pointer shadow-md"
+                      className="absolute top-2 right-2 p-2 bg-black/60 hover:bg-black/80 rounded-full text-white cursor-pointer shadow-md transition-transform active:scale-90"
+                      title="Foto Ulang"
                     >
                       <RefreshCw className="w-4 h-4" />
                     </button>
                   </>
                 ) : (
-                  <div className="flex flex-col items-center justify-center p-4 gap-2 text-stone-400">
-                    <Camera className="w-8 h-8 text-[#743951]" />
-                    <button
-                      type="button"
-                      onClick={triggerFileInput}
-                      className="px-4 py-1.5 bg-[#743951] text-white rounded-lg text-xs font-bold cursor-pointer shadow-md hover:bg-[#5c2d40]"
-                    >
-                      Pilih Foto Perangkat
-                    </button>
+                  <div className="flex flex-col items-center justify-center p-4 gap-3 text-stone-400">
+                    <div className="flex flex-col gap-2.5 w-full px-2">
+                      <button
+                        type="button"
+                        onClick={() => triggerActionWithPassword("camera")}
+                        className="w-full py-2 bg-[#743951] hover:bg-[#5c2d40] text-white rounded-xl text-xs font-bold cursor-pointer shadow-md flex items-center justify-center gap-1.5 transition-transform hover:scale-105"
+                      >
+                        <Camera className="w-4 h-4" />
+                        <span>Kamera Web</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => triggerActionWithPassword("file")}
+                        className="w-full py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl text-xs font-bold cursor-pointer shadow-md flex items-center justify-center gap-1.5 transition-transform hover:scale-105"
+                      >
+                        <Upload className="w-4 h-4" />
+                        <span>Upload Perangkat</span>
+                      </button>
+                    </div>
+                    <span className="text-[10px] text-stone-500 italic">Otomatis memasang frame photo booth</span>
                   </div>
                 )}
               </div>
             </div>
 
+            {/* Submit Button placed under form & preview */}
             <div className="flex gap-2 mt-2">
               <button
                 type="submit"
@@ -372,8 +446,8 @@ export default function PhotosPage() {
                     ? "Menyimpan..."
                     : "Mengunggah..."
                   : editingPhotoId
-                  ? "Simpan Perubahan"
-                  : "Tempel Foto"}
+                    ? "Simpan Perubahan"
+                    : "Tempel Foto"}
               </button>
 
               {editingPhotoId && (
@@ -442,7 +516,7 @@ export default function PhotosPage() {
                     src={photo.imageSrc}
                     alt={photo.guestName}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="object-contain p-0.5 group-hover:scale-105 transition-transform duration-300"
                     unoptimized
                   />
                 </div>
@@ -519,7 +593,7 @@ export default function PhotosPage() {
                 src={selectedPhoto.imageSrc}
                 alt={selectedPhoto.guestName}
                 fill
-                className="object-contain"
+                className="object-contain p-1"
                 unoptimized
               />
             </div>

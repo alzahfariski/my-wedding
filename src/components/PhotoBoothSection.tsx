@@ -7,6 +7,9 @@ import { Camera, Upload, Check, RefreshCw, Pencil, Trash2, CameraOff, AlertCircl
 import { collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { uploadToDrive, deleteFromDrive } from "@/app/actions/uploadDrive";
+import { generateFramedImage } from "@/lib/frameHelper";
+import CameraModal from "@/components/CameraModal";
+import PasswordPromptModal from "@/components/PasswordPromptModal";
 
 interface PinnedPhoto {
     id: string;
@@ -32,6 +35,12 @@ export default function PhotoBoothSection() {
     const [userId, setUserId] = useState("");
     const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
     const [editingPhotoOldFileId, setEditingPhotoOldFileId] = useState<string | undefined>(undefined);
+
+    // Password & Camera Modals state
+    const [isPasswordVerified, setIsPasswordVerified] = useState(false);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [pendingAction, setPendingAction] = useState<"camera" | "file" | null>(null);
+    const [isCameraOpen, setIsCameraOpen] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -80,20 +89,54 @@ export default function PhotoBoothSection() {
         return () => unsubscribe();
     }, []);
 
+    const triggerActionWithPassword = (action: "camera" | "file") => {
+        if (isPasswordVerified) {
+            if (action === "camera") {
+                setIsCameraOpen(true);
+            } else {
+                fileInputRef.current?.click();
+            }
+        } else {
+            setPendingAction(action);
+            setIsPasswordModalOpen(true);
+        }
+    };
+
+    const handlePasswordSuccess = () => {
+        setIsPasswordVerified(true);
+        if (pendingAction === "camera") {
+            setIsCameraOpen(true);
+        } else if (pendingAction === "file") {
+            setTimeout(() => {
+                fileInputRef.current?.click();
+            }, 100);
+        }
+        setPendingAction(null);
+    };
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            setSelectedFile(file);
             const reader = new FileReader();
-            reader.onload = (event) => {
-                setTempImage(event.target?.result as string);
+            reader.onload = async (event) => {
+                const rawDataUrl = event.target?.result as string;
+                try {
+                    // Automatically composite frame_photobooth.png overlay
+                    const { dataUrl, file: framedFile } = await generateFramedImage(rawDataUrl);
+                    setTempImage(dataUrl);
+                    setSelectedFile(framedFile);
+                } catch (err) {
+                    console.error("Error generating framed image:", err);
+                    alert("Gagal memasang frame pada foto. Silakan coba lagi.");
+                }
             };
             reader.readAsDataURL(file);
         }
     };
 
-    const triggerFileInput = () => {
-        fileInputRef.current?.click();
+    const handleCameraCapture = (framedDataUrl: string, framedFile: File) => {
+        setTempImage(framedDataUrl);
+        setSelectedFile(framedFile);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -113,7 +156,6 @@ export default function PhotoBoothSection() {
                 let newImageUrl: string = tempImage || "";
                 let newFileId: string | undefined = editingPhotoOldFileId;
 
-                // Check if user uploaded a replacement image file
                 if (selectedFile) {
                     const formData = new FormData();
                     formData.append("file", selectedFile);
@@ -126,7 +168,6 @@ export default function PhotoBoothSection() {
                     newImageUrl = driveRes.imageUrl;
                     newFileId = driveRes.fileId;
 
-                    // Delete old Google Drive photo
                     if (editingPhotoOldFileId) {
                         await deleteFromDrive(editingPhotoOldFileId);
                     }
@@ -145,7 +186,7 @@ export default function PhotoBoothSection() {
                 setEditingPhotoOldFileId(undefined);
             } else {
                 if (!selectedFile) {
-                    alert("Silakan pilih file gambar dari perangkat Anda.");
+                    alert("Silakan pilih foto atau ambil gambar melalui kamera.");
                     setSubmitting(false);
                     return;
                 }
@@ -192,7 +233,7 @@ export default function PhotoBoothSection() {
                 await deleteFromDrive(fileId);
             }
         } catch (err) {
-            console.error("Error deleting photo:", err);
+            console.error("Error deleting photo:", error);
             alert("Gagal menghapus foto dari database.");
         }
     };
@@ -210,6 +251,23 @@ export default function PhotoBoothSection() {
 
     return (
         <>
+            {/* Password Verification Modal (Triggers before camera / file upload) */}
+            <PasswordPromptModal
+                isOpen={isPasswordModalOpen}
+                onClose={() => {
+                    setIsPasswordModalOpen(false);
+                    setPendingAction(null);
+                }}
+                onSuccess={handlePasswordSuccess}
+            />
+
+            {/* Live Web Camera Viewfinder Modal */}
+            <CameraModal
+                isOpen={isCameraOpen}
+                onClose={() => setIsCameraOpen(false)}
+                onCapture={handleCameraCapture}
+            />
+
             {/* Photo Booth Form (Landscape Paper Card Layout) - Width 480px */}
             <div
                 style={{
@@ -234,65 +292,35 @@ export default function PhotoBoothSection() {
                         </p>
                     </div>
                 ) : (
-                    <form onSubmit={handleSubmit} className="flex gap-4 w-full text-left mt-1.5 flex-1 items-stretch">
-                        {/* Left Column: Name & Caption */}
-                        <div className="flex-[1.2] flex flex-col justify-between">
-                            <div className="flex flex-col gap-0.5">
-                                <label className="text-[10px] font-semibold">Nama Anda</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={guestName}
-                                    onChange={(e) => setGuestName(e.target.value)}
-                                    placeholder="Tulis nama Anda..."
-                                    className="px-2 py-0.5 rounded border border-[#743951]/20 bg-stone-50/50 text-[11px] text-stone-800 focus:outline-none focus:border-[#743951] transition-colors"
-                                />
+                    <form onSubmit={handleSubmit} className="flex gap-3.5 w-full text-left mt-1 flex-1 items-stretch">
+                        {/* Left Column: Name, Caption & Submit Button */}
+                        <div className="flex-1 flex flex-col justify-between">
+                            <div className="flex flex-col gap-1">
+                                <div className="flex flex-col gap-0.5">
+                                    <label className="text-[10px] font-semibold">Nama Anda</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={guestName}
+                                        onChange={(e) => setGuestName(e.target.value)}
+                                        placeholder="Tulis nama Anda..."
+                                        className="px-2 py-0.5 rounded border border-[#743951]/20 bg-stone-50/50 text-[11px] text-stone-800 focus:outline-none focus:border-[#743951] transition-colors"
+                                    />
+                                </div>
+
+                                <div className="flex flex-col gap-0.5 mt-0.5">
+                                    <label className="text-[10px] font-semibold">Keterangan</label>
+                                    <textarea
+                                        rows={2}
+                                        value={caption}
+                                        onChange={(e) => setCaption(e.target.value)}
+                                        placeholder="cth: Kondangan vibes!"
+                                        className="px-2 py-0.5 rounded border border-[#743951]/20 bg-stone-50/50 text-[10px] text-stone-800 focus:outline-none focus:border-[#743951] transition-colors resize-none min-h-[44px]"
+                                    />
+                                </div>
                             </div>
 
-                            <div className="flex flex-col gap-0.5 mt-1 flex-1">
-                                <label className="text-[10px] font-semibold">Keterangan</label>
-                                <textarea
-                                    rows={2}
-                                    value={caption}
-                                    onChange={(e) => setCaption(e.target.value)}
-                                    placeholder="cth: Kondangan vibes!"
-                                    className="px-2 py-1 rounded border border-[#743951]/20 bg-stone-50/50 text-[10px] text-stone-800 focus:outline-none focus:border-[#743951] transition-colors resize-none flex-1 min-h-[52px]"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Right Column: Image Uploader & Submit */}
-                        <div className="flex-1 flex flex-col justify-between pl-3.5 ">
-                            <div className="relative w-full h-[72px] bg-stone-100 border border-stone-200 rounded flex items-center justify-center overflow-hidden">
-                                {tempImage ? (
-                                    <>
-                                        <img
-                                            src={tempImage}
-                                            alt="Temp Upload"
-                                            className="w-full h-full object-cover"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={handleResetImage}
-                                            className="absolute top-1 right-1 w-5.5 h-5.5 bg-white/90 hover:bg-white rounded-full flex items-center justify-center cursor-pointer shadow-sm text-stone-600 transition-transform active:scale-90"
-                                        >
-                                            <RefreshCw className="w-2.5 h-2.5" />
-                                        </button>
-                                    </>
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center p-2 gap-0.5 text-center text-stone-400">
-                                        <Camera className="w-4.5 h-4.5 opacity-60 text-[#743951]" />
-                                        <button
-                                            type="button"
-                                            onClick={triggerFileInput}
-                                            className="px-2 py-0.5 bg-[#743951] text-white rounded text-[8px] cursor-pointer shadow-sm mt-0.5 hover:bg-[#5c2d40]"
-                                        >
-                                            Pilih Foto
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-
+                            {/* Submit Button placed under Keterangan */}
                             <div className="flex flex-col gap-1 w-full mt-1.5">
                                 <button
                                     type="submit"
@@ -318,6 +346,51 @@ export default function PhotoBoothSection() {
                                     >
                                         Batal Edit
                                     </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Right Column: Dedicated Full Portrait 1080x1350 Photo Preview & Actions */}
+                        <div className="w-[125px] flex flex-col justify-center items-center">
+                            <div className="relative w-full aspect-[1080/1350] bg-stone-100 border border-stone-200 rounded-lg flex items-center justify-center overflow-hidden shadow-inner">
+                                {tempImage ? (
+                                    <>
+                                        <img
+                                            src={tempImage}
+                                            alt="Temp Upload"
+                                            className="w-full h-full object-contain p-0.5"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleResetImage}
+                                            className="absolute top-1 right-1 w-5.5 h-5.5 bg-white/90 hover:bg-white rounded-full flex items-center justify-center cursor-pointer shadow-sm text-stone-600 transition-transform active:scale-90"
+                                            title="Foto Ulang"
+                                        >
+                                            <RefreshCw className="w-2.5 h-2.5" />
+                                        </button>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center p-2 gap-1.5 text-center text-stone-400 w-full h-full">
+                                        <Camera className="w-5 h-5 text-[#743951]/60" />
+                                        <div className="flex flex-col gap-1 w-full px-0.5">
+                                            <button
+                                                type="button"
+                                                onClick={() => triggerActionWithPassword("camera")}
+                                                className="w-full py-1 bg-[#743951] text-white rounded text-[9px] font-bold cursor-pointer shadow-sm hover:bg-[#5c2d40] flex items-center justify-center gap-1 transition-transform hover:scale-105"
+                                            >
+                                                <Camera className="w-3 h-3" />
+                                                <span>Kamera</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => triggerActionWithPassword("file")}
+                                                className="w-full py-1 bg-stone-200 text-stone-700 hover:bg-stone-300 rounded text-[9px] font-bold cursor-pointer shadow-sm flex items-center justify-center gap-1 transition-transform hover:scale-105"
+                                            >
+                                                <Upload className="w-3 h-3" />
+                                                <span>File</span>
+                                            </button>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -371,7 +444,7 @@ export default function PhotoBoothSection() {
                                         src={photo.imageSrc}
                                         alt="Polaroid View"
                                         fill
-                                        className="object-cover"
+                                        className="object-contain p-0.5"
                                         unoptimized
                                     />
                                 </div>
