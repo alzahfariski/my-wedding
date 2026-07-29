@@ -19,33 +19,35 @@ export default function LoveStorySection({ isMobile = false }: LoveStorySectionP
           Our Love Story
         </h2>
 
-        <div className="flex flex-col items-center gap-6 w-full max-w-sm">
-          <div className="relative w-[280px] h-[236px] overflow-hidden">
+        <div className="flex flex-col items-center gap-6 w-full px-2">
+          <div className="relative w-full max-w-[520px] aspect-[1904/1606]">
             <Image
               src="/assets/images/img_1.png"
               alt="Memory Image 1"
               fill
-              className="object-cover"
+              className="object-contain"
               priority
               unoptimized
             />
           </div>
 
-          <div className="relative w-[280px] h-[224px] overflow-hidden">
+          {/* img_2 (Gunakan translate-x atau self-align untuk geser kiri/kanan) */}
+          <div className="relative w-full max-w-[520px] aspect-[1320/1053] -translate-x-6">
             <Image
               src="/assets/images/img_2.png"
               alt="Memory Image 2"
               fill
-              className="object-cover"
+              className="object-contain"
               priority
               unoptimized
             />
           </div>
 
+          {/* Tombol Surat (Menimpa bagian bawah img_2 dengan margin negatif & z-10) */}
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="group relative w-[240px] bg-[#FAF6F0] p-4 rounded-xl border-2 border-[#743951]/30 shadow-xl active:scale-95 transition-all rotate-[-2deg] cursor-pointer select-none text-left flex flex-col items-center justify-center text-[#743951] mt-2"
+            className="group relative z-10 -mt-12 sm:-mt-16 w-[240px] bg-[#FAF6F0] p-4 rounded-xl border-2 border-[#743951]/30 shadow-xl active:scale-95 transition-all rotate-[-2deg] cursor-pointer select-none text-left flex flex-col items-center justify-center text-[#743951] -translate-x-12"
             title="Buka Surat Love Story"
           >
             {/* Tape Decor */}

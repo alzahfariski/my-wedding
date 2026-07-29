@@ -402,7 +402,7 @@ export default function HomeContent() {
     <>
       {/* ── Mobile Layout: Normal Vertical Scroll ───────────── */}
       {isMobileDevice ? (
-        <div className="w-full min-h-screen bg-[#faf9f6] bg-white bg-cover bg-fixed pt-16 pb-24 px-3 flex flex-col items-center gap-10 overflow-y-auto">
+        <div className="w-full min-h-screen bg-[#faf9f6] bg-cover bg-fixed pt-16 pb-24 px-3 flex flex-col items-center gap-10 overflow-y-auto">
           {/* section 1 - love story */}
           <LoveStorySection isMobile={true} />
 
@@ -482,7 +482,7 @@ export default function HomeContent() {
         <div className="w-full flex items-start justify-between">
           {/* Header Card */}
           <div className="pointer-events-auto bg-white/75 backdrop-blur-md border border-stone-200/50 p-2 px-3 sm:p-3 sm:px-4 rounded-2xl shadow-md flex flex-col select-none max-w-[60vw] sm:max-w-none">
-            <h1 className="font-alex text-lg sm:text-xl md:text-2xl font-bold text-[#743951] leading-none">
+            <h1 className="font-alex text-lg sm:text-xl md:text-2xl font-normal text-[#743951] leading-none">
               Alzah & Effri
             </h1>
             <p className="text-[8px] sm:text-[10px] md:text-[11px] font-kalam text-stone-500 mt-0.5 sm:mt-1 uppercase tracking-wider">
@@ -558,8 +558,8 @@ export default function HomeContent() {
               onMouseLeave={() => setIsMusicHovered(false)}
               onClick={toggleMusic}
               className={`flex items-center bg-white/75 backdrop-blur-md border border-stone-200/50 shadow-md rounded-full transition-all duration-500 ease-out cursor-pointer select-none overflow-hidden h-10 sm:h-12 ${isMusicPlaying || isMusicHovered
-                  ? "w-[180px] sm:w-[220px] px-2.5 sm:px-3 gap-2 sm:gap-2.5"
-                  : "w-10 sm:w-12 justify-center animate-pulse"
+                ? "w-[180px] sm:w-[220px] px-2.5 sm:px-3 gap-2 sm:gap-2.5"
+                : "w-10 sm:w-12 justify-center animate-pulse"
                 }`}
               aria-label="Toggle background music"
             >
