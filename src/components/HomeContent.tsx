@@ -404,7 +404,7 @@ export default function HomeContent() {
             <GroomBrideSection />
 
             {/* section 3 - gallery */}
-            {/* <GallerySection /> */}
+            <GallerySection />
 
             {/* section 4 - date time */}
             {/* <DateTimeSection /> */}
