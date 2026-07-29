@@ -197,12 +197,12 @@ export default function WeddingWishSection() {
 
     return (
         <>
-            {/* Wishes Input Form (Landscape Paper Card Layout) - Width 480px, ends at 2670px */}
+            {/* Wishes Input Form (Landscape Paper Card Layout) - Width 480px */}
             <div
                 style={{
                     position: "absolute",
-                    left: "2190px",
-                    top: "550px",
+                    left: "2390px",
+                    top: "1320px",
                     width: "480px",
                     minHeight: "175px",
                 }}
@@ -298,12 +298,12 @@ export default function WeddingWishSection() {
                 )}
             </div>
 
-            {/* Pinned Real-time Wishes Feed (CSS Styled Sticky Notes Grid) - Width 480px, ends at 2670px */}
+            {/* Pinned Real-time Wishes Feed (CSS Styled Sticky Notes Grid) - Width 480px */}
             <div
                 style={{
                     position: "absolute",
-                    left: "2190px",
-                    top: "760px",
+                    left: "2390px",
+                    top: "1530px",
                     width: "480px",
                 }}
                 className="grid grid-cols-4 gap-2.5"
@@ -376,24 +376,26 @@ export default function WeddingWishSection() {
                 })}
             </div>
 
-            {/* View All Button */}
-            <div
-                style={{
-                    position: "absolute",
-                    left: "2190px",
-                    top: "1040px",
-                    width: "480px",
-                }}
-                className="flex justify-center"
-            >
-                <button
-                    type="button"
-                    onClick={() => setIsViewAllOpen(true)}
-                    className="px-5 py-1 bg-white/90 border border-[#743951]/20 hover:bg-white text-[#743951] font-kalam font-bold text-[11px] rounded-full shadow-sm cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-image-pop"
+            {/* View All Button (Only visible if wishes exceed maximum 8 sticky notes) */}
+            {wishes.length > 8 && (
+                <div
+                    style={{
+                        position: "absolute",
+                        left: "2390px",
+                        top: "1810px",
+                        width: "480px",
+                    }}
+                    className="flex justify-center"
                 >
-                    View All Wishes ({wishes.length})
-                </button>
-            </div>
+                    <button
+                        type="button"
+                        onClick={() => setIsViewAllOpen(true)}
+                        className="px-5 py-1 bg-white/90 border border-[#743951]/20 hover:bg-white text-[#743951] font-kalam font-bold text-[11px] rounded-full shadow-sm cursor-pointer transition-transform hover:scale-105 active:scale-95 animate-image-pop"
+                    >
+                        View All Wishes ({wishes.length})
+                    </button>
+                </div>
+            )}
 
             {/* View All Wishes Modal */}
             {isViewAllOpen && (
