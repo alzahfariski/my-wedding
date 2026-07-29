@@ -4,7 +4,11 @@ import { useState } from "react";
 import Image from "next/image";
 import GalleryDetailModal from "./GalleryDetailModal";
 
-export default function GallerySection() {
+interface GallerySectionProps {
+  isMobile?: boolean;
+}
+
+export default function GallerySection({ isMobile = false }: GallerySectionProps) {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
 
   const handleOpenLightbox = (index: number) => {
@@ -14,6 +18,60 @@ export default function GallerySection() {
   const handleCloseLightbox = () => {
     setSelectedPhotoIndex(null);
   };
+
+  if (isMobile) {
+    const galleryItems = [
+      { src: "/assets/gallery/gallery_1.png", alt: "Gallery 1", aspect: "aspect-[4/3]" },
+      { src: "/assets/gallery/gallery_2.png", alt: "Gallery 2", aspect: "aspect-[3/4]" },
+      { src: "/assets/gallery/gallery_3.png", alt: "Gallery 3", aspect: "aspect-[4/3]" },
+      { src: "/assets/gallery/gallery_4.png", alt: "Gallery 4", aspect: "aspect-[3/4]" },
+      { src: "/assets/gallery/gallery_5.png", alt: "Gallery 5", aspect: "aspect-square" },
+      { src: "/assets/gallery/gallery_6.png", alt: "Gallery 6", aspect: "aspect-[16/9]" },
+    ];
+
+    return (
+      <section id="section-3" className="w-full flex flex-col items-center py-8 px-4 relative">
+        <h2 className="font-alex text-5xl rotate-[-4deg] font-normal text-[#737373] mb-6 text-center select-none">
+          Our Gallery
+        </h2>
+
+        <div className="w-full max-w-sm grid grid-cols-2 gap-3 relative z-10">
+          {galleryItems.map((item, idx) => (
+            <div
+              key={idx}
+              onClick={() => handleOpenLightbox(idx)}
+              className={`relative w-full ${item.aspect} rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform`}
+            >
+              <Image
+                src={item.src}
+                alt={item.alt}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Balloon Decorative Element */}
+        <div className="relative w-[140px] h-[140px] mt-4 select-none self-end mr-4">
+          <Image
+            src="/assets/images/img_6.png"
+            alt="baloon"
+            fill
+            className="object-cover"
+            unoptimized
+          />
+        </div>
+
+        <GalleryDetailModal
+          isOpen={selectedPhotoIndex !== null}
+          initialIndex={selectedPhotoIndex ?? 0}
+          onClose={handleCloseLightbox}
+        />
+      </section>
+    );
+  }
 
   return (
     <>

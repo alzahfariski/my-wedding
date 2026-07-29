@@ -170,10 +170,11 @@ body {
 
 /* Touch device hover fixes - override Tailwind's hover classes on touch devices */
 @media (hover: none) {
-  /* Prevent scaling and rotating on touch devices */
+  /* Prevent scaling, translating, and rotating on touch devices on hover tap */
   .hover\:scale-105:hover,
   .hover\:scale-110:hover,
-  .hover\:rotate-0:hover {
+  .hover\:rotate-0:hover,
+  .hover\:-translate-y-1\.5:hover {
     transform: none !important;
   }
 
@@ -193,6 +194,7 @@ body {
   .hover\:bg-white:hover {
     background-color: rgba(255, 255, 255, 0.9) !important;
   }
+  .hover\:bg-\[\#743951\]\/10:hover,
   .hover\:bg-\[\#743951\]\/15:hover {
     background-color: transparent !important;
   }
@@ -201,8 +203,9 @@ body {
     background-color: transparent !important;
   }
 
-  /* Reset button shadow enhancements */
-  .hover\:shadow-xl:hover {
+  /* Reset button shadow enhancements on touch hover */
+  .hover\:shadow-xl:hover,
+  .hover\:shadow-2xl:hover {
     box-shadow:
       0 10px 15px -3px rgba(0, 0, 0, 0.1),
       0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;

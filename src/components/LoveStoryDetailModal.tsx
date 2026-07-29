@@ -202,14 +202,15 @@ export default function LoveStoryDetailModal({
           */}
           <div
             onClick={(e) => e.stopPropagation()}
-            className={`absolute bg-[#FAF7F2] border-2 border-[#743951]/30 rounded-2xl shadow-2xl transition-all duration-600 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col font-kalam text-[#743951] overflow-hidden ${animStage === "expanded"
-              ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[94vw] max-w-6xl h-[92vh] max-h-[92vh] scale-100 z-50 p-6 sm:p-10 md:p-14 opacity-100"
-              : animStage === "expanding"
-                ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] max-w-4xl h-[80vh] scale-95 z-50 p-5 sm:p-8 opacity-100"
+            className={`absolute bg-[#FAF7F2] border-2 border-[#743951]/30 rounded-2xl shadow-2xl transition-all duration-600 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col font-kalam text-[#743951] overflow-hidden ${
+              animStage === "expanded"
+                ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-6xl h-[90vh] max-h-[90vh] scale-100 z-50 p-4 sm:p-8 md:p-12 opacity-100"
+                : animStage === "expanding"
+                ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] max-w-4xl h-[80vh] scale-95 z-50 p-4 sm:p-8 opacity-100"
                 : animStage === "rising-letter"
-                  ? "w-[90%] sm:w-[92%] h-[240px] -translate-y-28 sm:-translate-y-36 scale-100 z-40 p-4 opacity-100 shadow-2xl"
-                  : "w-[85%] sm:w-[88%] h-[180px] translate-y-2 scale-90 opacity-70 z-10 p-3"
-              }`}
+                ? "w-[90%] sm:w-[92%] h-[240px] -translate-y-28 sm:-translate-y-36 scale-100 z-40 p-4 opacity-100 shadow-2xl"
+                : "w-[85%] sm:w-[88%] h-[180px] translate-y-2 scale-90 opacity-70 z-10 p-3"
+            }`}
           >
             {/* Close Button (Visible during expansion & reading) */}
             {(animStage === "expanded" || animStage === "expanding") && (

@@ -21,7 +21,11 @@ interface PinnedPhoto {
     creatorId?: string;
 }
 
-export default function PhotoBoothSection() {
+interface PhotoBoothSectionProps {
+    isMobile?: boolean;
+}
+
+export default function PhotoBoothSection({ isMobile = false }: PhotoBoothSectionProps) {
     const [photos, setPhotos] = useState<PinnedPhoto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -249,6 +253,156 @@ export default function PhotoBoothSection() {
     const activePhotos = photos.slice(0, 12);
     const rotations = ["rotate-[-3deg]", "rotate-[2deg]", "rotate-[-1deg]", "rotate-[3deg]", "rotate-[-2deg]"];
 
+    if (isMobile) {
+        return (
+            <section id="section-7" className="w-full flex flex-col items-center py-8 px-4 text-center select-none">
+                <PasswordPromptModal
+                    isOpen={isPasswordModalOpen}
+                    onClose={() => {
+                        setIsPasswordModalOpen(false);
+                        setPendingAction(null);
+                    }}
+                    onSuccess={handlePasswordSuccess}
+                />
+                <CameraModal
+                    isOpen={isCameraOpen}
+                    onClose={() => setIsCameraOpen(false)}
+                    onCapture={handleCameraCapture}
+                />
+
+                <h2 className="font-alex text-5xl font-normal text-[#737373] mb-4">Photo Booth</h2>
+
+                {/* Form */}
+                <div className="w-full max-w-xs p-2 font-kalam text-left text-[#743951] mb-6">
+                    <h3 className="text-lg font-bold border-b border-[#743951]/10 pb-1 mb-3 text-center">
+                        {editingPhotoId ? "Edit Momen Anda" : "Abadikan Momen"}
+                    </h3>
+                    {submitted ? (
+                        <div className="flex flex-col items-center py-4 gap-1 text-center">
+                            <Check className="w-8 h-8 text-emerald-500" />
+                            <span className="text-sm font-bold">{editingPhotoId ? "Tersimpan!" : "Terpasang!"}</span>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs font-semibold">Nama Anda</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={guestName}
+                                    onChange={(e) => setGuestName(e.target.value)}
+                                    placeholder="Tulis nama Anda..."
+                                    className="px-3 py-1.5 rounded border border-[#743951]/20 bg-stone-50 text-xs text-stone-800 focus:outline-none focus:border-[#743951]"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs font-semibold">Keterangan</label>
+                                <input
+                                    type="text"
+                                    value={caption}
+                                    onChange={(e) => setCaption(e.target.value)}
+                                    placeholder="cth: Kondangan vibes..."
+                                    className="px-3 py-1.5 rounded border border-[#743951]/20 bg-stone-50 text-xs text-stone-800 focus:outline-none focus:border-[#743951]"
+                                />
+                            </div>
+
+                            {/* Image Preview & Upload Buttons */}
+                            <div className="flex flex-col items-center gap-2 my-1">
+                                {tempImage ? (
+                                    <div className="relative w-28 h-36 bg-stone-100 rounded-lg overflow-hidden border border-stone-300">
+                                        <img src={tempImage} alt="Temp Upload" className="w-full h-full object-contain" />
+                                        <button
+                                            type="button"
+                                            onClick={handleResetImage}
+                                            className="absolute top-1 right-1 p-1 bg-white/90 rounded-full shadow text-stone-600 cursor-pointer"
+                                        >
+                                            <RefreshCw className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex gap-2 w-full">
+                                        <button
+                                            type="button"
+                                            onClick={() => triggerActionWithPassword("camera")}
+                                            className="flex-1 py-2 bg-[#743951] text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow active:scale-95 transition-transform"
+                                        >
+                                            <Camera className="w-4 h-4" />
+                                            <span>Kamera</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => triggerActionWithPassword("file")}
+                                            className="flex-1 py-2 bg-stone-200 text-stone-700 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow active:scale-95 transition-transform"
+                                        >
+                                            <Upload className="w-4 h-4" />
+                                            <span>File</span>
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={submitting || !tempImage}
+                                className="w-full py-2 bg-[#743951] text-white font-semibold rounded shadow text-xs cursor-pointer mt-1 disabled:opacity-50"
+                            >
+                                {submitting ? "Memproses..." : (editingPhotoId ? "Simpan Foto" : "Tempel Foto")}
+                            </button>
+                        </form>
+                    )}
+                </div>
+
+                {/* Polaroids Grid Feed */}
+                <div className="w-full max-w-xs grid grid-cols-2 gap-3 mb-5">
+                    {activePhotos.map((photo, index) => {
+                        const rotClass = rotations[index % rotations.length];
+                        return (
+                            <div
+                                key={photo.id}
+                                className={`w-full ${rotClass} bg-[#fafaf9] rounded shadow-md border border-stone-200 p-2 flex flex-col items-center relative select-none`}
+                            >
+                                {/* Tape decoration on top */}
+                                <div className="absolute -top-1.5 w-6 h-2 bg-amber-100/60 rotate-[-8deg] rounded-sm shadow-sm" />
+
+                                <div className="relative w-full aspect-square bg-stone-100 border border-stone-200/50 rounded-sm overflow-hidden mb-1">
+                                    <Image src={photo.imageSrc} alt="Polaroid" fill className="object-contain p-0.5" unoptimized />
+                                </div>
+                                <span className="font-kalam text-xs font-bold text-[#743951] truncate w-full mt-1">{photo.guestName}</span>
+                                <span className="font-kalam text-[10px] text-stone-500 italic truncate w-full">"{photo.caption}"</span>
+                                <div className="flex justify-between items-center w-full mt-1 pt-1 border-t border-stone-200/60 font-sans text-[9px] text-stone-400">
+                                    <span>{photo.date}</span>
+                                    {photo.creatorId === userId && (
+                                        <div className="flex gap-1">
+                                            <button onClick={() => { setEditingPhotoId(photo.id); setEditingPhotoOldFileId(photo.fileId); setGuestName(photo.guestName); setCaption(photo.caption); setTempImage(photo.imageSrc); setSelectedFile(null); }} className="p-0.5"><Pencil className="w-3 h-3 text-[#743951]" /></button>
+                                            <button onClick={() => handleDeletePhoto(photo.id, photo.fileId)} className="p-0.5"><Trash2 className="w-3 h-3 text-red-600" /></button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {photos.length > 12 && (
+                    <Link
+                        href="/photos"
+                        className="px-5 py-2 bg-white border border-[#743951]/20 text-[#743951] font-kalam text-xs font-bold rounded-full shadow-sm"
+                    >
+                        View All Photos ({photos.length})
+                    </Link>
+                )}
+
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="hidden"
+                />
+            </section>
+        );
+    }
+
     return (
         <>
             {/* Password Verification Modal (Triggers before camera / file upload) */}
@@ -403,7 +557,7 @@ export default function PhotoBoothSection() {
                 style={{
                     position: "absolute",
                     left: "2390px",
-                    top: "2060px",
+                    top: "2080px",
                     width: "480px",
                 }}
                 className="grid grid-cols-4 gap-2.5"
@@ -418,7 +572,7 @@ export default function PhotoBoothSection() {
                         Memuat galeri foto...
                     </div>
                 ) : activePhotos.length === 0 ? (
-                    <div className="col-span-4 p-3 bg-white/70 border border-dashed border-[#743951]/30 rounded-lg text-center font-kalam text-[#743951] flex flex-col items-center gap-0.5 shadow-sm">
+                    <div className="col-span-4 p-3 bg-white/70 border border-dashed border-[#743951]/30 rounded-lg text-center font-kalam text-[#743951] flex flex-col items-center gap-0.5 shadow-sm mt-6">
                         <CameraOff className="w-4 h-4 text-[#743951]/60" />
                         <span className="text-[11px] font-bold">Belum Ada Foto</span>
                         <p className="text-[9px] text-stone-500 italic">Bagikan foto momen bahagiamu di atas!</p>

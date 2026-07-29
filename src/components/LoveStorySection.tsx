@@ -5,8 +5,66 @@ import Image from "next/image";
 import { BookOpen } from "lucide-react";
 import LoveStoryDetailModal from "./LoveStoryDetailModal";
 
-export default function LoveStorySection() {
+interface LoveStorySectionProps {
+  isMobile?: boolean;
+}
+
+export default function LoveStorySection({ isMobile = false }: LoveStorySectionProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  if (isMobile) {
+    return (
+      <section id="section-1" className="w-full flex flex-col items-center py-6 px-4">
+        <h2 className="font-alex text-5xl font-normal text-[#737373] mb-6 text-center select-none">
+          Our Love Story
+        </h2>
+
+        <div className="flex flex-col items-center gap-6 w-full max-w-sm">
+          <div className="relative w-[280px] h-[236px] overflow-hidden">
+            <Image
+              src="/assets/images/img_1.png"
+              alt="Memory Image 1"
+              fill
+              className="object-cover"
+              priority
+              unoptimized
+            />
+          </div>
+
+          <div className="relative w-[280px] h-[224px] overflow-hidden">
+            <Image
+              src="/assets/images/img_2.png"
+              alt="Memory Image 2"
+              fill
+              className="object-cover"
+              priority
+              unoptimized
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="group relative w-[240px] bg-[#FAF6F0] p-4 rounded-xl border-2 border-[#743951]/30 shadow-xl active:scale-95 transition-all rotate-[-2deg] cursor-pointer select-none text-left flex flex-col items-center justify-center text-[#743951] mt-2"
+            title="Buka Surat Love Story"
+          >
+            {/* Tape Decor */}
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-4 bg-amber-100/80 rotate-[2deg] shadow-sm border border-amber-200/40" />
+
+            <span className="font-kalam text-[12px] text-stone-600 mt-1 flex items-center gap-1.5 text-center font-medium">
+              <BookOpen className="w-4 h-4 text-[#743951]" />
+              <span>Klik untuk membaca surat</span>
+            </span>
+          </button>
+        </div>
+
+        <LoveStoryDetailModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
+      </section>
+    );
+  }
 
   return (
     <>

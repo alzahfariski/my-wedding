@@ -79,12 +79,12 @@ export interface CanvasSectionWaypoint {
  */
 export const SECTION_WAYPOINTS: readonly CanvasSectionWaypoint[] = [
   { id: "section-1", label: "Love Story", progress: 0.0, scale: 3.0 },
-  { id: "section-2", label: "Groom & Bride", progress: 0.11, scale: 3.2 },
-  { id: "section-3", label: "Our Gallery", progress: 0.35, scale: 2.8 },
-  { id: "section-4", label: "Akad & Resepsi", progress: 0.55, scale: 3.0 },
-  { id: "section-5", label: "Wedding Gift", progress: 0.68, scale: 2.5 },
-  { id: "section-6", label: "Wedding Wish", progress: 0.8, scale: 3.0 },
-  { id: "section-7", label: "Photo Booth", progress: 0.92, scale: 3.2 },
+  { id: "section-2", label: "Groom & Bride", progress: 0.2, scale: 3.2 },
+  { id: "section-3", label: "Our Gallery", progress: 0.42, scale: 2.8 },
+  { id: "section-4", label: "Akad & Resepsi", progress: 0.6, scale: 3.0 },
+  { id: "section-5", label: "Wedding Gift", progress: 0.74, scale: 2.5 },
+  { id: "section-6", label: "Wedding Wish", progress: 0.85, scale: 3.0 },
+  { id: "section-7", label: "Photo Booth", progress: 0.94, scale: 3.2 },
 ] as const;
 
 /**
@@ -95,6 +95,3 @@ export const DEFAULT_ZOOM = 1.0;
 
 /** Total virtual scroll height multiplier (relative to viewport height) */
 export const SCROLL_HEIGHT_MULTIPLIER = 7;
-
-/** Background image path for the corkboard texture */
-export const CORKBOARD_IMAGE_PATH = "/assets/images/corkboard.jpg";

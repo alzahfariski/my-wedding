@@ -23,7 +23,11 @@ const NOTE_COLORS = [
     { name: "Krem Warm", value: "#fed7aa", border: "ring-orange-300" },
 ];
 
-export default function WeddingWishSection() {
+interface WeddingWishSectionProps {
+    isMobile?: boolean;
+}
+
+export default function WeddingWishSection({ isMobile = false }: WeddingWishSectionProps) {
     const [wishes, setWishes] = useState<Wish[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -140,6 +144,116 @@ export default function WeddingWishSection() {
 
     const activeWishes = wishes.slice(0, 8);
     const rotations = ["rotate-[-3deg]", "rotate-[2deg]", "rotate-[-1deg]", "rotate-[3deg]", "rotate-[-2deg]"];
+
+    if (isMobile) {
+        return (
+            <section id="section-6" className="w-full flex flex-col items-center py-8 px-4 text-center select-none">
+                <h2 className="font-alex text-5xl font-normal text-[#737373] mb-4">Wedding Wish</h2>
+
+                {/* Form */}
+                <div className="w-full max-w-xs p-2 font-kalam text-left text-[#743951] mb-6">
+                    <h3 className="text-lg font-bold border-b border-[#743951]/10 pb-1 mb-3 text-center">
+                        {editingWishId ? "Edit Your Wish" : "Give Your Wish"}
+                    </h3>
+                    {submitted ? (
+                        <div className="flex flex-col items-center py-4 gap-1 text-center">
+                            <Check className="w-8 h-8 text-emerald-500" />
+                            <span className="text-sm font-bold">{editingWishId ? "Tersimpan!" : "Terkirim!"}</span>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs font-semibold">Nama</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="Tulis nama Anda..."
+                                    className="px-3 py-1.5 rounded border border-[#743951]/20 bg-stone-50 text-xs text-stone-800 focus:outline-none focus:border-[#743951]"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs font-semibold">Ucapan / Doa</label>
+                                <textarea
+                                    required
+                                    rows={3}
+                                    value={wishText}
+                                    onChange={(e) => setWishText(e.target.value)}
+                                    placeholder="Berikan ucapan selamat & doa restu..."
+                                    className="px-3 py-1.5 rounded border border-[#743951]/20 bg-stone-50 text-xs text-stone-800 focus:outline-none focus:border-[#743951] resize-none"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs font-semibold">Pilih Warna Note:</label>
+                                <div className="flex gap-2 mt-1">
+                                    {NOTE_COLORS.map((color) => (
+                                        <button
+                                            key={color.value}
+                                            type="button"
+                                            onClick={() => setSelectedColor(color.value)}
+                                            style={{ backgroundColor: color.value }}
+                                            className={`w-6 h-6 rounded-full border border-stone-300 shadow-sm ${selectedColor === color.value ? "ring-2 ring-offset-1 ring-[#743951]" : ""}`}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={submitting}
+                                className="w-full py-2 bg-[#743951] text-white font-semibold rounded shadow text-xs mt-1 cursor-pointer"
+                            >
+                                {submitting ? "Memproses..." : (editingWishId ? "Simpan Perubahan" : "Pasang Ucapan")}
+                            </button>
+                        </form>
+                    )}
+                </div>
+
+                {/* Sticky Notes Feed Grid */}
+                <div className="w-full max-w-xs grid grid-cols-2 gap-3 mb-5">
+                    {activeWishes.map((wish, index) => {
+                        const rotClass = rotations[index % rotations.length];
+                        return (
+                            <div
+                                key={wish.id}
+                                style={{ backgroundColor: wish.color }}
+                                className={`p-3 rounded shadow-sm border border-stone-200/50 font-kalam text-[#743951] flex flex-col justify-between text-left min-h-[120px] relative ${rotClass}`}
+                            >
+                                {/* Red push-pin top center */}
+                                <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-red-400 to-red-600 border border-white/60 shadow shadow-red-950/20" />
+                                    <div className="w-0.5 h-0.5 bg-stone-500 mx-auto -mt-0.5 rounded-b-sm" />
+                                </div>
+
+                                <div>
+                                    <span className="text-xs font-bold block border-b border-[#743951]/10 pb-0.5 truncate text-center mt-1">{wish.name}</span>
+                                    <p className="text-[11px] text-stone-800 mt-1 line-clamp-3 italic">"{wish.text}"</p>
+                                </div>
+                                <div className="flex justify-between items-center mt-2 pt-1 border-t border-[#743951]/10 text-[9px] text-stone-500 font-sans">
+                                    <span>{wish.date}</span>
+                                    {wish.creatorId === userId && (
+                                        <div className="flex gap-1">
+                                            <button onClick={() => { setEditingWishId(wish.id); setName(wish.name); setWishText(wish.text); setSelectedColor(wish.color); }} className="p-0.5"><Pencil className="w-3 h-3" /></button>
+                                            <button onClick={() => handleDeleteWish(wish.id)} className="p-0.5 text-red-600"><Trash2 className="w-3 h-3" /></button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {wishes.length > 8 && (
+                    <Link
+                        href="/wishes"
+                        className="px-5 py-2 bg-white border border-[#743951]/20 text-[#743951] font-kalam text-xs font-bold rounded-full shadow-sm"
+                    >
+                        View All Wishes ({wishes.length})
+                    </Link>
+                )}
+            </section>
+        );
+    }
 
     return (
         <>
