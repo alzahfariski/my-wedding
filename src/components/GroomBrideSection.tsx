@@ -27,7 +27,7 @@ export default function GroomBrideSection({ isMobile = false }: GroomBrideSectio
     return (
       <section id="section-2" className="w-full flex flex-col items-center py-8 px-4 text-center select-none">
         {/* Couple Icon img_3.png */}
-        <div className="relative w-[100px] h-[100px] mb-3">
+        <div className="relative w-[140px] h-[140px] mb-3">
           <Image
             src="/assets/images/img_3.png"
             alt="Groom and Bride Icon"
@@ -46,51 +46,58 @@ export default function GroomBrideSection({ isMobile = false }: GroomBrideSectio
         </p>
 
         {/* Groom Section */}
-        <div className="w-full max-w-xs flex flex-col items-center mb-8">
-          <div className="relative w-[240px] h-[312px] overflow-hidden mb-3">
+        <div className="w-full max-w-sm sm:max-w-md flex flex-row items-center gap-3 sm:gap-4 mb-8 text-left">
+          <div className="relative w-[220px] sm:w-[250px] aspect-[1068/1305] shrink-0">
             <Image
               src="/assets/images/img_4.png"
               alt="Groom"
               fill
-              className="object-cover"
+              className="object-contain"
               unoptimized
             />
           </div>
-          <h3 className="font-kalam text-2xl font-normal text-[#743951] leading-none mb-1">The Groom</h3>
-          <p className="font-kalam text-xs text-[#743951] mb-3">Putra dari Bapak Sukardi & Ibu Fitri Lestari</p>
-          <a
-            href="https://www.instagram.com/alzahfariski/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#947268] text-white rounded-full border border-white/60 shadow-lg shadow-[#947268]/20 font-kalam text-sm active:scale-95 transition-transform"
-          >
-            <InstagramIcon className="w-4 h-4" />
-            <span>alzahfariski</span>
-          </a>
+          <div className="flex flex-col items-start flex-1 min-w-0">
+            <h3 className="font-kalam text-xl sm:text-2xl font-normal text-[#743951] leading-none mb-1.5">The Groom</h3>
+            <p className="font-kalam text-xs text-[#743951] mb-3 leading-relaxed">Putra dari Bapak Sukardi & Ibu Fitri Lestari</p>
+            <a
+              href="https://www.instagram.com/alzahfariski/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-[#947268] text-white rounded-full border border-white/60 shadow-lg shadow-[#947268]/20 font-kalam text-xs active:scale-95 transition-transform"
+            >
+              <InstagramIcon className="w-3.5 h-3.5" />
+              <span>alzahfariski</span>
+            </a>
+          </div>
         </div>
 
         {/* Bride Section */}
-        <div className="w-full max-w-xs flex flex-col items-center">
-          <div className="relative w-[240px] h-[290px] overflow-hidden mb-3">
+        <div className="w-full max-w-sm sm:max-w-md flex flex-row items-center gap-3 sm:gap-4 mb-8 text-right">
+          {/* Left: Text & Instagram */}
+          <div className="flex flex-col items-end flex-1 min-w-0">
+            <h3 className="font-kalam text-xl sm:text-2xl font-normal text-[#743951] leading-none mb-1.5">The Bride</h3>
+            <p className="font-kalam text-xs text-[#743951] mb-3 leading-relaxed">Putri dari Bapak Suyitno & Ibu Pujirah</p>
+            <a
+              href="https://www.instagram.com/effridwiyana/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-[#947268] text-white rounded-full border border-white/60 shadow-lg shadow-[#947268]/20 font-kalam text-xs active:scale-95 transition-transform"
+            >
+              <InstagramIcon className="w-3.5 h-3.5" />
+              <span>effridwiyana</span>
+            </a>
+          </div>
+
+          {/* Right: img_5 */}
+          <div className="relative w-[220px] sm:w-[250px] aspect-[1041/1284] shrink-0">
             <Image
               src="/assets/images/img_5.png"
               alt="Bride"
               fill
-              className="object-cover"
+              className="object-contain"
               unoptimized
             />
           </div>
-          <h3 className="font-kalam text-2xl font-normal text-[#743951] leading-none mb-1">The Bride</h3>
-          <p className="font-kalam text-xs text-[#743951] mb-3">Putri dari Bapak Suyitno & Ibu Pujirah</p>
-          <a
-            href="https://www.instagram.com/effridwiyana/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#947268] text-white rounded-full border border-white/60 shadow-lg shadow-[#947268]/20 font-kalam text-sm active:scale-95 transition-transform"
-          >
-            <InstagramIcon className="w-4 h-4" />
-            <span>effridwiyana</span>
-          </a>
         </div>
       </section>
     );
