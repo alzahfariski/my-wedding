@@ -12,7 +12,7 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
   onTogglePlay,
 }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const audioUrl = "/assets/v1/audio/bg-music.mp3";
+  const audioUrl = "/assets/audio/bg-music.mp3";
 
   useEffect(() => {
     if (audioRef.current) {
@@ -32,9 +32,8 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
       <button
         type="button"
         onClick={onTogglePlay}
-        className={`w-12 h-12 rounded-full bg-amber-900 text-white shadow-xl border-2 border-amber-200 flex items-center justify-center transition-transform hover:scale-110 active:scale-95 ${
-          isPlaying ? 'animate-spin' : ''
-        }`}
+        className={`w-12 h-12 rounded-full bg-amber-900 text-white shadow-xl border-2 border-amber-200 flex items-center justify-center transition-transform hover:scale-110 active:scale-95 ${isPlaying ? 'animate-spin' : ''
+          }`}
         style={{ animationDuration: '4s' }}
         title={isPlaying ? "Mute Music" : "Play Music"}
       >
