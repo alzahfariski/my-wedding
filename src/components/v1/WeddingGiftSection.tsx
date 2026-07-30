@@ -105,7 +105,7 @@ export const WeddingGiftSection: React.FC = () => {
                                                 </p>
                                                 <button
                                                     type="button"
-                                                    className=" flex items-center gap-1.5 px-3 py-1.5  text-black rounded-lg text-xs  transition-all active:scale-95"
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 text-black rounded-lg text-xs transition-all active:scale-95 cursor-pointer"
                                                     onClick={() => handleCopy('901127794450')}
                                                     title="Copy Account Number"
                                                 >
@@ -129,7 +129,7 @@ export const WeddingGiftSection: React.FC = () => {
                                                 </p>
                                                 <button
                                                     type="button"
-                                                    className=" flex items-center gap-1.5 px-3 py-1.5  text-black rounded-lg text-xs hover:bg-amber-950 transition-all active:scale-95"
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 text-black rounded-lg text-xs hover:bg-amber-950 transition-all active:scale-95 cursor-pointer"
                                                     onClick={() => handleCopy('6555500134')}
                                                     title="Copy Account Number"
                                                 >

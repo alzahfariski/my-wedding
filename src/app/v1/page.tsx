@@ -9,6 +9,7 @@ import { GallerySection } from '@/components/v1/GallerySection';
 import { SaveDateSection } from '@/components/v1/SaveDateSection';
 import { AgendaSection } from '@/components/v1/AgendaSection';
 import { WeddingGiftSection } from '@/components/v1/WeddingGiftSection';
+import { GiftConfirmationSection } from '@/components/v1/GiftConfirmationSection';
 import { WeddingWishSection } from '@/components/v1/WeddingWishSection';
 import { QuoteSecSection } from '@/components/v1/QuoteSecSection';
 import { QuoteMessageSection } from '@/components/v1/QuoteMessageSection';
@@ -118,6 +119,7 @@ export default function V1Page() {
           <SaveDateSection />
           <AgendaSection />
           <WeddingGiftSection />
+          <GiftConfirmationSection />
           <WeddingWishSection />
           <QuoteSecSection />
           <QuoteMessageSection />
