@@ -12,7 +12,7 @@ export const MusicPlayer: React.FC<MusicPlayerProps> = ({
   onTogglePlay,
 }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const audioUrl = "/assets/audio/bg-music.mp3";
+  const audioUrl = "/assets/audio/background-music.mp3";
 
   useEffect(() => {
     if (audioRef.current) {
