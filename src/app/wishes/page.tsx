@@ -205,7 +205,7 @@ export default function WishesPage() {
           Wedding Wishes & Doa Restu
         </h1>
         <p className="text-sm sm:text-base text-stone-600 italic">
-          Ungkapan kebahagiaan dan doa restu untuk pernikahan Alzha & Effri ({wishes.length} Ucapan)
+          Ungkapan kebahagiaan dan doa restu untuk pernikahan Alzah & Effri ({wishes.length} Ucapan)
         </p>
       </div>
 

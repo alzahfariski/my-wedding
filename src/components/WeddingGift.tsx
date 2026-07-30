@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Copy, Check, AlertCircle } from "lucide-react";
 import { submitConfirmation } from "@/services/confirmationService";
+import { formatRupiahInput } from "@/lib/formatRupiah";
 
 interface WeddingGiftSectionProps {
     isMobile?: boolean;
@@ -67,7 +68,16 @@ export default function WeddingGiftSection({ isMobile = false }: WeddingGiftSect
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.name.trim() || !formData.amount.trim()) return;
+        if (!formData.name.trim()) {
+            setError("Nama pengirim wajib diisi.");
+            return;
+        }
+
+        const numericAmount = formData.amount.replace(/[^0-9]/g, "");
+        if (!numericAmount || parseInt(numericAmount, 10) <= 0) {
+            setError("Nominal hadiah harus berupa angka yang valid (contoh: 100.000).");
+            return;
+        }
 
         setSubmitting(true);
         setError(null);
@@ -247,10 +257,12 @@ export default function WeddingGiftSection({ isMobile = false }: WeddingGiftSect
                                 <label className="text-xs font-semibold">Nominal</label>
                                 <input
                                     type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9.]*"
                                     required
                                     value={formData.amount}
-                                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                                    placeholder="cth: Rp 100.000"
+                                    onChange={(e) => setFormData({ ...formData, amount: formatRupiahInput(e.target.value) })}
+                                    placeholder="cth: 100.000"
                                     className="px-3 py-1.5 rounded border border-[#743951]/20 bg-stone-50 text-xs text-stone-800 focus:outline-none focus:border-[#743951]"
                                 />
                             </div>
@@ -538,10 +550,12 @@ export default function WeddingGiftSection({ isMobile = false }: WeddingGiftSect
                                     <label className="text-[13px] font-semibold">Nominal</label>
                                     <input
                                         type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9.]*"
                                         required
                                         value={formData.amount}
-                                        onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                                        placeholder="cth: Rp 100.000"
+                                        onChange={(e) => setFormData({ ...formData, amount: formatRupiahInput(e.target.value) })}
+                                        placeholder="cth: 100.000"
                                         className="px-3 py-1.5 rounded border border-[#743951]/20 bg-stone-50/50 text-[13px] text-stone-800 focus:outline-none focus:border-[#743951] transition-colors"
                                     />
                                 </div>
