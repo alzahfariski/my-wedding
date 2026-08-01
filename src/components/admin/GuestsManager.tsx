@@ -123,12 +123,9 @@ export default function GuestsManager() {
   };
 
   // Generate invitation link for a guest
-  const getInvitationLink = (guestName: string, selectedTheme: InvitationTheme): string => {
+  const getInvitationLink = (guestName: string, selectedTheme?: InvitationTheme): string => {
     const baseUrl = origin || "http://localhost:3000";
     const encodedName = encodeURIComponent(guestName.trim());
-    if (selectedTheme === "v1") {
-      return `${baseUrl}/v1?to=${encodedName}`;
-    }
     return `${baseUrl}/?to=${encodedName}`;
   };
 
@@ -158,7 +155,7 @@ export default function GuestsManager() {
       .replace(/\{nama\}/gi, guest.name)
       .replace(/\{link\}/gi, link)
       .replace(/\{acara\}/gi, "Alzah & Effri")
-      .replace(/\{tema\}/gi, guest.theme === "v1" ? "Tema V1" : "Tema Global");
+      .replace(/\{tema\}/gi, "Tema Global");
   };
 
   const handleSendWA = async (guest: GuestDraft) => {
@@ -334,7 +331,6 @@ export default function GuestsManager() {
           >
             <option value="all">Semua Tema</option>
             <option value="global">Tema Global (/)</option>
-            <option value="v1">Tema V1 (/v1)</option>
           </select>
         </div>
       </div>
@@ -390,17 +386,10 @@ export default function GuestsManager() {
                       </td>
 
                       <td className="py-3 px-4">
-                        {guest.theme === "v1" ? (
-                          <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-md font-bold text-[10px]">
-                            <Sparkles className="w-3 h-3 text-amber-500" />
-                            Tema V1 (/v1)
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md font-bold text-[10px]">
-                            <Globe className="w-3 h-3 text-blue-500" />
-                            Tema Global (/)
-                          </span>
-                        )}
+                        <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md font-bold text-[10px]">
+                          <Globe className="w-3 h-3 text-blue-500" />
+                          Tema Global (/)
+                        </span>
                       </td>
 
                       <td className="py-3 px-4 max-w-xs">
@@ -545,43 +534,15 @@ export default function GuestsManager() {
                 </span>
               </div>
 
-              {/* Theme Selector */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-stone-700">Pilih Tema Link Undangan</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setTheme("global")}
-                    className={`p-3 rounded-xl border text-left flex flex-col gap-1 cursor-pointer transition-all ${theme === "global"
-                        ? "border-[#743951] bg-[#743951]/5 text-[#743951] font-bold shadow-xs"
-                        : "border-stone-200 bg-stone-50 text-stone-600 hover:bg-stone-100"
-                      }`}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <Globe className="w-4 h-4 text-blue-500" />
-                      <span className="text-xs">Tema Global</span>
-                    </div>
-                    <span className="text-[10px] text-stone-400 font-mono truncate">
-                      /?to=Nama
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setTheme("v1")}
-                    className={`p-3 rounded-xl border text-left flex flex-col gap-1 cursor-pointer transition-all ${theme === "v1"
-                        ? "border-[#743951] bg-[#743951]/5 text-[#743951] font-bold shadow-xs"
-                        : "border-stone-200 bg-stone-50 text-stone-600 hover:bg-stone-100"
-                      }`}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-amber-500" />
-                      <span className="text-xs">Tema V1</span>
-                    </div>
-                    <span className="text-[10px] text-stone-400 font-mono truncate">
-                      /v1?to=Nama
-                    </span>
-                  </button>
+              {/* Theme Picker (Global Theme) */}
+              <div>
+                <label className="text-xs font-bold text-stone-700">Tema Link Undangan</label>
+                <div className="p-3 rounded-xl border border-[#743951] bg-[#743951]/5 text-[#743951] font-bold text-xs flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Globe className="w-4 h-4 text-blue-500" />
+                    <span>Tema Global</span>
+                  </div>
+                  <span className="text-[10px] text-stone-500 font-mono">/?to=Nama</span>
                 </div>
               </div>
 

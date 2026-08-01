@@ -1,10 +1,10 @@
-export type InvitationTheme = "global" | "v1";
+export type InvitationTheme = "global";
 
 export interface GuestDraft {
   id: string;
   name: string;
   phone: string; // e.g. "08123456789" or "628123456789"
-  theme: InvitationTheme; // "global" (/) or "v1" (/v1)
+  theme: InvitationTheme; // "global" (/)
   status: "pending" | "sent"; // "Belum Terkirim" | "Sudah Terkirim"
   templateId?: string;
   customMessage?: string;
