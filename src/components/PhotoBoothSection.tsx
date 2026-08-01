@@ -56,6 +56,12 @@ export default function PhotoBoothSection({ isMobile = false }: PhotoBoothSectio
             localStorage.setItem("wedding_user_id", storedId);
         }
         setUserId(storedId);
+
+        // Auto verify password on or after wedding day (5 August 2026)
+        const weddingDate = new Date("2026-08-05T00:00:00+07:00");
+        if (new Date() >= weddingDate) {
+            setIsPasswordVerified(true);
+        }
     }, []);
 
     // Subscribe to photos from Firestore
@@ -237,7 +243,7 @@ export default function PhotoBoothSection({ isMobile = false }: PhotoBoothSectio
                 await deleteFromDrive(fileId);
             }
         } catch (err) {
-            console.error("Error deleting photo:", error);
+            console.error("Error deleting photo:", err);
             alert("Gagal menghapus foto dari database.");
         }
     };

@@ -55,21 +55,21 @@ export async function generateFramedImage(
         // 2. Draw frame PNG on top (normal orientation, un-mirrored)
         ctx.drawImage(frameImg, 0, 0, targetWidth, targetHeight);
 
-        // 3. Export PNG
-        const dataUrl = canvas.toDataURL("image/png");
+        // 3. Export JPEG for fast upload & small memory footprint
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
         canvas.toBlob(
           (blob) => {
             if (blob) {
-              const file = new File([blob], `framed_photobooth_${Date.now()}.png`, {
-                type: "image/png",
+              const file = new File([blob], `framed_photobooth_${Date.now()}.jpg`, {
+                type: "image/jpeg",
               });
               resolve({ dataUrl, file });
             } else {
               reject(new Error("Gagal membuat blob gambar ter-frame."));
             }
           },
-          "image/png",
-          1.0
+          "image/jpeg",
+          0.85
         );
       };
 

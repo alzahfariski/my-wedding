@@ -20,6 +20,7 @@ export default function PasswordPromptModal({
   const [password, setPassword] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isWeddingDay, setIsWeddingDay] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -28,6 +29,16 @@ export default function PasswordPromptModal({
   useEffect(() => {
     if (!isOpen) {
       setPassword("");
+      setErrorMsg(null);
+    } else {
+      const weddingDate = new Date("2026-08-05T00:00:00+07:00");
+      const todayIsWeddingDay = new Date() >= weddingDate;
+      setIsWeddingDay(todayIsWeddingDay);
+      if (todayIsWeddingDay) {
+        setPassword("alzahdaneffri");
+      } else {
+        setPassword("");
+      }
       setErrorMsg(null);
     }
   }, [isOpen]);
@@ -80,9 +91,18 @@ export default function PasswordPromptModal({
         <h3 className="text-lg font-bold text-[#743951] text-center">
           Masukkan Password Photo Booth
         </h3>
-        <p className="text-xs text-stone-600 italic text-center mt-1 mb-4">
-          Password diumumkan pada acara resepsi pernikahan.
-        </p>
+        {isWeddingDay ? (
+          <div className="w-full p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl mt-1 mb-4 text-center text-xs font-bold text-emerald-800 flex flex-col items-center justify-center gap-0.5 shadow-xs">
+            <span>🎉 Hari H Pernikahan (5 Agustus 2026)!</span>
+            <span className="font-sans text-[11px] font-normal text-emerald-700">
+              Password otomatis diisi: <strong className="font-mono font-bold text-[#743951]">alzahdaneffri</strong>
+            </span>
+          </div>
+        ) : (
+          <p className="text-xs text-stone-600 italic text-center mt-1 mb-4">
+            Password diumumkan pada acara resepsi pernikahan.
+          </p>
+        )}
 
         {errorMsg && (
           <div className="w-full p-2.5 bg-red-50 border border-red-200 rounded-xl mb-3 text-center text-xs font-bold text-red-700 flex items-center justify-center gap-1.5">
@@ -93,7 +113,7 @@ export default function PasswordPromptModal({
 
         <form onSubmit={handleSubmit} className="w-full flex flex-col gap-3">
           <input
-            type="password"
+            type={isWeddingDay ? "text" : "password"}
             autoFocus
             required
             value={password}
