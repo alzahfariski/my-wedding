@@ -8,6 +8,37 @@ interface CoverPageProps {
   onOpen: () => void;
 }
 
+function getGuestNameFontSize(name: string): string {
+  const len = name ? name.trim().length : 0;
+  if (len > 35) return "text-[10px] sm:text-xs leading-tight";
+  if (len > 22) return "text-xs sm:text-sm leading-tight";
+  if (len > 14) return "text-sm sm:text-base leading-tight";
+  return "text-base sm:text-lg leading-tight";
+}
+
+function GuestNameTag({ guestName, sizes }: { guestName: string; sizes: string }) {
+  return (
+    <div className="relative w-full aspect-[4/1] mt-1 flex items-center justify-center">
+      <Image
+        src="/assets/cover/tagname.png"
+        alt="Guest Name Tag Card"
+        fill
+        sizes={sizes}
+        className="object-contain"
+        priority
+      />
+      <span
+        className={`relative z-10 text-handwritten-body text-[#743951] font-bold px-3 text-center max-w-[85%] line-clamp-2 break-words mt-0.5 ${getGuestNameFontSize(
+          guestName
+        )}`}
+        title={guestName}
+      >
+        {guestName}
+      </span>
+    </div>
+  );
+}
+
 export default function CoverPage({ guestName, onOpen }: CoverPageProps) {
   return (
     <>
@@ -33,22 +64,7 @@ export default function CoverPage({ guestName, onOpen }: CoverPageProps) {
           </p>
 
           {/* Dynamic Guest Name Card Tag */}
-          <div className="relative w-full aspect-[4/1] mt-1 flex items-center justify-center">
-            <Image
-              src="/assets/cover/tagname.png"
-              alt="Guest Name Tag Card"
-              fill
-              sizes="290px"
-              className="object-contain"
-              priority
-            />
-            <span
-              className="relative z-10 text-handwritten-body text-[#743951] font-bold px-4 text-center text-base sm:text-lg truncate max-w-[85%] leading-none mt-0.5"
-              title={guestName}
-            >
-              {guestName}
-            </span>
-          </div>
+          <GuestNameTag guestName={guestName} sizes="290px" />
 
           {/* Open Board Button */}
           <div className="w-full flex justify-center mt-3">
@@ -85,22 +101,7 @@ export default function CoverPage({ guestName, onOpen }: CoverPageProps) {
               Dear Mr/Mrs/Ms
             </p>
 
-            <div className="relative w-full aspect-[4/1] mt-1 flex items-center justify-center">
-              <Image
-                src="/assets/cover/tagname.png"
-                alt="Guest Name Tag Card"
-                fill
-                sizes="320px"
-                className="object-contain"
-                priority
-              />
-              <span
-                className="relative z-10 text-handwritten-body text-[#743951] font-bold px-4 text-center text-base truncate max-w-[85%] leading-none mt-0.5"
-                title={guestName}
-              >
-                {guestName}
-              </span>
-            </div>
+            <GuestNameTag guestName={guestName} sizes="320px" />
 
             <button
               onClick={onOpen}
